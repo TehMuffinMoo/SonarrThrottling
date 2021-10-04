@@ -24,7 +24,7 @@ class sonarrThrottlingPlugin extends Organizr
 		return array(
 			'Plugin Settings' => array(
 				$this->settingsOption('auth', 'SONARRTHROTTLING-pluginAuth'),
-				$this->settingsOption('input', 'SONARRTHROTTLING-ThrottledTagName', ['label' => 'The name of the tag you want to use in Sonarr.']),
+				$this->settingsOption('input', 'SONARRTHROTTLING-ThrottledTagName', ['label' => 'The name of the tag you want to use in Sonarr']),
 				$this->settingsOption('input', 'SONARRTHROTTLING-SeasonCountThreshold', ['label' => 'Season Threshold']),
 				$this->settingsOption('input', 'SONARRTHROTTLING-EpisodeCountThreshold', ['label' => 'Episode Threshold']),
 				$this->settingsOption('input', 'SONARRTHROTTLING-EpisodeSearchCount', ['label' => 'Amount of episodes to perform initial scan for']),
@@ -55,13 +55,19 @@ class sonarrThrottlingPlugin extends Organizr
 		## Set Sonarr Tag Endpoint
 		$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey;
 
-		$response = Requests::get($SonarrTagEndpoint, $headers, []);
-		if ($response->success) {
-			$SonarrTagObj = json_decode($response->body);
-			$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
-			$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
-		} else {
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags: ' . $e->getMessage(), 500);
+		try {
+			$response = Requests::get($SonarrTagEndpoint, $headers, []);
+			if ($response->success) {
+				$SonarrTagObj = json_decode($response->body);
+				$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
+				$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
+			} else {
+				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags');
+				return false;
+			}
+		} catch (Requests_Exception $e) {
+			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: ' . $e->getMessage(), 'SYSTEM');
+			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags: ' . $e->getMessage(), 409);
 			return false;
 		}
 
@@ -102,12 +108,17 @@ class sonarrThrottlingPlugin extends Organizr
 			$SonarrLookupEndpoint = $SonarrHost.'/series/lookup?term='.$userSearch.'&apikey='.$SonarrAPIKey;
 
 			## Query Sonarr Lookup API
-			$SonarrLookupObj = json_decode(file_get_contents($SonarrLookupEndpoint));
-			$response = Requests::get($SonarrLookupEndpoint, $headers, []);
-			if ($response->success) {
-				$$SonarrLookupObj = json_decode($response->body);
-			} else {
-				$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series: ' . $e->getMessage(), 500);
+			try {
+				$response = Requests::get($SonarrLookupEndpoint, $headers, []);
+				if ($response->success) {
+					$SonarrLookupObj = json_decode($response->body);
+				} else {
+					$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series');
+					return false;
+				}
+			} catch (Requests_Exception $e) {
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags: ' . $e->getMessage(), 'SYSTEM');
+				$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags: ' . $e->getMessage(), 409);
 				return false;
 			}
 
@@ -123,13 +134,36 @@ class sonarrThrottlingPlugin extends Organizr
 			$SonarrSeriesEndpoint = $SonarrHost.'/series/'.$SeriesID.'?apikey='.$SonarrAPIKey;
 		
 			## Query Sonarr Series API
-			$SonarrSeriesObj = json_decode(file_get_contents($SonarrSeriesEndpoint));
+			try {
+				$response = Requests::get($SonarrSeriesEndpoint, $headers, []);
+				if ($response->success) {
+					$SonarrSeriesObj = json_decode($response->body);
+				} else {
+					$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query series');
+					return false;
+				}
+			} catch (Requests_Exception $e) {
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query series: ' . $e->getMessage(), 'SYSTEM');
+				$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query series' . $e->getMessage(), 409);
+				return false;
+			}
 			
-			## Check if TV Show has Throttling tag
+			## Query Sonarr Episode API
 			if (in_array($ThrottledTag,$SonarrSeriesObj->tags)) {
 				$SonarrEpisodeEndpoint = $SonarrHost.'/episode/?apikey='.$SonarrAPIKey.'&seriesId='.$SeriesID;
-				$SonarrEpisodeObj = json_decode(file_get_contents($SonarrEpisodeEndpoint));
-				
+				try {
+					$response = Requests::get($SonarrEpisodeEndpoint, $headers, []);
+					if ($response->success) {
+						$SonarrEpisodeObj = json_decode($response->body);
+					} else {
+						$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query episode data');
+						return false;
+					}
+				} catch (Requests_Exception $e) {
+					$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query episode data: ' . $e->getMessage(), 'SYSTEM');
+					$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query episode data' . $e->getMessage(), 409);
+					return false;
+				}	
 				## Find next incremental episode to download
 				foreach ($SonarrEpisodeObj as $Episode) {
 					if ($Episode->hasFile == false && $Episode->seasonNumber != "0" && $Episode->monitored == true) {
@@ -215,7 +249,19 @@ class sonarrThrottlingPlugin extends Organizr
 				
 				## Set Sonarr Tag Endpoint
 				$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey;
-				$SonarrTagObj = json_decode(file_get_contents($SonarrTagEndpoint));
+				try {
+					$response = Requests::get($SonarrTagEndpoint, $headers, []);
+					if ($response->success) {
+						$SonarrTagObj = json_decode($response->body);
+					} else {
+						$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags');
+						return false;
+					}
+				} catch (Requests_Exception $e) {
+					$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags: ' . $e->getMessage(), 'SYSTEM');
+					$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags' . $e->getMessage(), 409);
+					return false;
+				}
 				$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
 				$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
 				
@@ -231,8 +277,19 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrLookupEndpoint = $SonarrHost.'/series/lookup?term='.$userSearch.'&apikey='.$SonarrAPIKey;
 
 				## Query Sonarr Lookup API
-				$SonarrLookupJSON = file_get_contents($SonarrLookupEndpoint);
-				$SonarrLookupObj = json_decode($SonarrLookupJSON);
+				try {
+					$response = Requests::get($SonarrLookupEndpoint, $headers, []);
+					if ($response->success) {
+						$SonarrLookupObj = json_decode($response->body);
+					} else {
+						$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags');
+						return false;
+					}
+				} catch (Requests_Exception $e) {
+					$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags: ' . $e->getMessage(), 'SYSTEM');
+					$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags' . $e->getMessage(), 409);
+					return false;
+				}
 				
 				## Check if Sonarr ID Exists
 				if (empty($SonarrLookupObj[0]->id)) {
@@ -246,8 +303,19 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrSeriesEndpoint = $SonarrHost.'/series/'.$SeriesID.'?apikey='.$SonarrAPIKey;
 			
 				## Query Sonarr Series API
-				$SonarrSeriesJSON = file_get_contents($SonarrSeriesEndpoint);
-				$SonarrSeriesObj = json_decode($SonarrSeriesJSON);
+				try {
+					$response = Requests::get($SonarrSeriesEndpoint, $headers, []);
+					if ($response->success) {
+						$SonarrSeriesObj = json_decode($response->body);
+					} else {
+						$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query sonarr series');
+						return false;
+					}
+				} catch (Requests_Exception $e) {
+					$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr series' . $e->getMessage(), 'SYSTEM');
+					$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr series' . $e->getMessage(), 409);
+					return false;
+				}
 
 				## Check Season Count & Apply Throttling Tag if neccessary
 				$EpisodeCount = 0;
@@ -283,7 +351,20 @@ class sonarrThrottlingPlugin extends Organizr
 				$this->REST($SonarrCommandEndpoint, $SonarrSearchPostData, 'POST'); // Send Scan Command to Sonarr
 				} else if ($Search == "searchX") {
 				$SonarrEpisodeEndpoint = $SonarrHost."/episode/?seriesId=".$SeriesID."&apikey=".$SonarrAPIKey; // Set Sonarr URI
-				$Episodes = json_decode(file_get_contents($SonarrEpisodeEndpoint), true); // Get Episode Information from Sonarr
+				try {
+					$response = Requests::get($SonarrEpisodeEndpoint, $headers, []);
+					if ($response->success) {
+						$Episodes = json_decode($response->body, true);
+					} else {
+						$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query sonarr episode data');
+						return false;
+					}
+				} catch (Requests_Exception $e) {
+					$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr episode data: ' . $e->getMessage(), 'SYSTEM');
+					$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr episode data' . $e->getMessage(), 409);
+					return false;
+				}
+
 				foreach ($Episodes as $Key => $Episode) {
 					if ($Episode['seasonNumber'] != "0" && $Episode['hasFile'] != true) {
 					$EpisodesToSearch[] = $Episode['id'];
