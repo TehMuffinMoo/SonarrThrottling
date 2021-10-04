@@ -39,6 +39,17 @@ class sonarrThrottlingPlugin extends Organizr
 		);
 	}
 
+	public function _pluginLaunch()
+	{
+		$user = $this->getUserById($this->user['userID']);
+		if ($user) {
+			$this->setResponse(200, 'User approved for plugin');
+			return true;
+		}
+		$this->setResponse(401, 'User not approved for plugin');
+		return false;
+	}
+
 	public function getSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID) {
 		$SonarrSeriesEndpoint = $SonarrHost.'/series/'.$SeriesID.'?apikey='.$SonarrAPIKey; // Set Sonarr Series Endpoint
 		$headers = array(
@@ -175,19 +186,56 @@ class sonarrThrottlingPlugin extends Organizr
 		}
 	}
 
+	public function getThrottledTag($SonarrHost,$SonarrAPIKey) {
+		$ThrottledTagName = $this->config['SONARRTHROTTLING-ThrottledTagName'];
+		$SonarrTagObj = $this->getSonarrTags($SonarrHost,$SonarrAPIKey);
+		$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
+		$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
+		return $ThrottledTag;
+	}
+
+	public function getSonarrThrottled() {
+		## Set Sonarr Details
+		$SonarrHost = $this->config['sonarrURL'].'/api';
+		$SonarrAPIKey = $this->config['sonarrToken'];
+		$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
+		$SonarrSeriesObj = $this->getSonarrSeries($SonarrHost,$SonarrAPIKey,"");
+		$apiData = array();
+		foreach ($SonarrSeriesObj as $SonarrSeriesItem) {
+			if (in_array($ThrottledTag,$SonarrSeriesItem->tags)) {
+				//return $SonarrSeriesItem;
+				if ($SonarrSeriesItem->episodeCount != "0") {
+					$SonarrSeriesItemPerc = (100 / $SonarrSeriesItem->episodeCount) * $SonarrSeriesItem->episodeFileCount;
+					if ($SonarrSeriesItemPerc > 100) {
+						$SonarrSeriesItemPerc = "100";
+					}
+					foreach ($SonarrSeriesItem->images as $ImgObj) {
+						if ($ImgObj->coverType == "poster") {
+						$SonarrSeriesObjImage = $ImgObj->url;
+						}
+					}
+					$apiData[] = array (
+						"Title" => $SonarrSeriesItem->title,
+						"EpisodeCount" => $SonarrSeriesItem->episodeCount,
+						"EpisodeFileCount" => $SonarrSeriesItem->episodeFileCount,
+						"TotalEpisodeCount" => $SonarrSeriesItem->totalEpisodeCount,
+						"Progress" => $SonarrSeriesItemPerc,
+						"ImageUrl" => $SonarrSeriesObjImage
+					);
+				}
+			}
+		}
+		return $apiData;		
+	}
+
 	public function TautulliWebhook($request)
 	{
 		## Set Sonarr Details
 		$SonarrHost = $this->config['sonarrURL'].'/api';
 		$SonarrAPIKey = $this->config['sonarrToken'];
 
-		## Set Parameters
-		$ThrottledTagName = $this->config['SONARRTHROTTLING-ThrottledTagName'];
-		  
-		## Query Sonarr Tags
-		$SonarrTagObj = $this->getSonarrTags($SonarrHost,$SonarrAPIKey);
-		$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
-		$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
+		## Get Throttled Tag
+		$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
 
 		############# DEBUG #############
 		$req_dump = print_r( $request, true );
@@ -319,11 +367,9 @@ class sonarrThrottlingPlugin extends Organizr
 			$SeasonCountThreshold = $this->config['SONARRTHROTTLING-SeasonCountThreshold'];
 			$EpisodeCountThreshold = $this->config['SONARRTHROTTLING-EpisodeCountThreshold'];
 			$EpisodeSearchCount = $this->config['SONARRTHROTTLING-EpisodeSearchCount'];
-			$ThrottledTagName = $this->config['SONARRTHROTTLING-ThrottledTagName'];
 			
-			$SonarrTagObj = $this->getSonarrTags($SonarrHost,$SonarrAPIKey);
-			$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
-			$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
+			## Get Throttled Tag
+			$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
 			
 			## Error if Throttled tag is missing in Sonarr. May add auto creation of tag in future.
 			if (empty($ThrottledTag)) {
