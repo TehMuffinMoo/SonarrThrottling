@@ -48,12 +48,22 @@ class sonarrThrottlingPlugin extends Organizr
 
 		## Set Parameters
 		$ThrottledTagName = $this->config['SONARRTHROTTLING-ThrottledTagName'];
+		$headers = array(
+			'Content-type: application/json',
+		);
 		  
 		## Set Sonarr Tag Endpoint
 		$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey;
-		$SonarrTagObj = json_decode(file_get_contents($SonarrTagEndpoint));
-		$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
-		$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
+
+		$response = Requests::get($SonarrTagEndpoint, $headers, []);
+		if ($response->success) {
+			$SonarrTagObj = json_decode($response->body);
+			$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
+			$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
+		} else {
+			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags: ' . $e->getMessage(), 500);
+			return false;
+		}
 
 		############# DEBUG #############
 		$req_dump = print_r( $request, true );
@@ -93,6 +103,13 @@ class sonarrThrottlingPlugin extends Organizr
 
 			## Query Sonarr Lookup API
 			$SonarrLookupObj = json_decode(file_get_contents($SonarrLookupEndpoint));
+			$response = Requests::get($SonarrLookupEndpoint, $headers, []);
+			if ($response->success) {
+				$$SonarrLookupObj = json_decode($response->body);
+			} else {
+				$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series: ' . $e->getMessage(), 500);
+				return false;
+			}
 
 			## Check if Sonarr ID Exists
 			if (empty($SonarrLookupObj[0]->id)) {
