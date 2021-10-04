@@ -60,6 +60,25 @@ class sonarrThrottlingPlugin extends Organizr
 		}
 	}
 
+	public function getSonarrTags($SonarrHost,$SonarrAPIKey) {
+		## Set Sonarr Tag Endpoint
+		$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey;
+		try {
+			$response = Requests::get($SonarrTagEndpoint, $headers, []);
+			if ($response->success) {
+				$SonarrTagObj = json_decode($response->body);
+				return $SonarrTagObj;
+			} else {
+				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags');
+				return false;
+			}
+		} catch (Requests_Exception $e) {
+			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags: ' . $e->getMessage(), 'SYSTEM');
+			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags' . $e->getMessage(), 409);
+			return false;
+		}
+	}
+
 	public function TautulliWebhook($request)
 	{
 		## Set Sonarr Details
@@ -72,24 +91,10 @@ class sonarrThrottlingPlugin extends Organizr
 			'Content-type: application/json',
 		);
 		  
-		## Set Sonarr Tag Endpoint
-		$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey;
-
-		try {
-			$response = Requests::get($SonarrTagEndpoint, $headers, []);
-			if ($response->success) {
-				$SonarrTagObj = json_decode($response->body);
-				$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
-				$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
-			} else {
-				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags');
-				return false;
-			}
-		} catch (Requests_Exception $e) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: ' . $e->getMessage(), 'SYSTEM');
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags: ' . $e->getMessage(), 409);
-			return false;
-		}
+		## Query Sonarr Tags
+		$SonarrTagObj = $this->getSonarrTags($SonarrHost,$SonarrAPIKey);
+		$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
+		$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
 
 		############# DEBUG #############
 		$req_dump = print_r( $request, true );
@@ -137,8 +142,8 @@ class sonarrThrottlingPlugin extends Organizr
 					return false;
 				}
 			} catch (Requests_Exception $e) {
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags: ' . $e->getMessage(), 'SYSTEM');
-				$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to check Sonarr tags: ' . $e->getMessage(), 409);
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series: ' . $e->getMessage(), 'SYSTEM');
+				$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series' . $e->getMessage(), 409);
 				return false;
 			}
 
@@ -252,21 +257,7 @@ class sonarrThrottlingPlugin extends Organizr
 				$EpisodeSearchCount = $this->config['SONARRTHROTTLING-EpisodeSearchCount'];
 				$ThrottledTagName = $this->config['SONARRTHROTTLING-ThrottledTagName'];
 				
-				## Set Sonarr Tag Endpoint
-				$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey;
-				try {
-					$response = Requests::get($SonarrTagEndpoint, $headers, []);
-					if ($response->success) {
-						$SonarrTagObj = json_decode($response->body);
-					} else {
-						$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags');
-						return false;
-					}
-				} catch (Requests_Exception $e) {
-					$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags: ' . $e->getMessage(), 'SYSTEM');
-					$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr tags' . $e->getMessage(), 409);
-					return false;
-				}
+				$SonarrTagObj = $this->getSonarrTags($SonarrHost,$SonarrAPIKey);
 				$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
 				$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
 				
