@@ -39,6 +39,26 @@ class sonarrThrottlingPlugin extends Organizr
 		);
 	}
 
+	public function getSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID) {
+		## Set Sonarr Series Endpoint
+		$SonarrSeriesEndpoint = $SonarrHost.'/series/'.$SeriesID.'?apikey='.$SonarrAPIKey;
+		
+		## Query Sonarr Series API
+		try {
+			$response = Requests::get($SonarrSeriesEndpoint, $headers, []);
+			if ($response->success) {
+				$SonarrSeriesObj = json_decode($response->body);
+				return $SonarrSeriesObj;
+			} else {
+				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query series');
+				return false;
+			}
+		} catch (Requests_Exception $e) {
+			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query series: ' . $e->getMessage(), 'SYSTEM');
+			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query series' . $e->getMessage(), 409);
+			return false;
+		}
+	}
 
 	public function TautulliWebhook($request)
 	{
@@ -129,24 +149,9 @@ class sonarrThrottlingPlugin extends Organizr
 				return false;
 			}
 			
-			## Set Sonarr Series Endpoint
-			$SeriesID = $SonarrLookupObj[0]->id;
-			$SonarrSeriesEndpoint = $SonarrHost.'/series/'.$SeriesID.'?apikey='.$SonarrAPIKey;
-		
 			## Query Sonarr Series API
-			try {
-				$response = Requests::get($SonarrSeriesEndpoint, $headers, []);
-				if ($response->success) {
-					$SonarrSeriesObj = json_decode($response->body);
-				} else {
-					$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query series');
-					return false;
-				}
-			} catch (Requests_Exception $e) {
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query series: ' . $e->getMessage(), 'SYSTEM');
-				$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query series' . $e->getMessage(), 409);
-				return false;
-			}
+			$SeriesID = $SonarrLookupObj[0]->id;
+			$SonarrSeriesObj = $this->getSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID);
 			
 			## Query Sonarr Episode API
 			if (in_array($ThrottledTag,$SonarrSeriesObj->tags)) {
@@ -298,24 +303,9 @@ class sonarrThrottlingPlugin extends Organizr
 					return false;
 				}
 			
-				## Set Sonarr Series Endpoint
-				$SeriesID = $SonarrLookupObj[0]->id;
-				$SonarrSeriesEndpoint = $SonarrHost.'/series/'.$SeriesID.'?apikey='.$SonarrAPIKey;
-			
 				## Query Sonarr Series API
-				try {
-					$response = Requests::get($SonarrSeriesEndpoint, $headers, []);
-					if ($response->success) {
-						$SonarrSeriesObj = json_decode($response->body);
-					} else {
-						$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query sonarr series');
-						return false;
-					}
-				} catch (Requests_Exception $e) {
-					$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr series' . $e->getMessage(), 'SYSTEM');
-					$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query sonarr series' . $e->getMessage(), 409);
-					return false;
-				}
+				$SeriesID = $SonarrLookupObj[0]->id;
+				$SonarrSeriesObj = $this->getSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID);
 
 				## Check Season Count & Apply Throttling Tag if neccessary
 				$EpisodeCount = 0;
