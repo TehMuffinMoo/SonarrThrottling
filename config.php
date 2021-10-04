@@ -5,5 +5,10 @@
  */
 return array(
 	'SONARRTHROTTLING-enabled' => false,
+	'SONARRTHROTTLING-ThrottledTagName' => "throttled",
+	'SONARRTHROTTLING-SeasonCountThreshold' => "5",
+	'SONARRTHROTTLING-EpisodeCountThreshold' => "25",
+	'SONARRTHROTTLING-EpisodeSearchCount' => "10",
+	'SONARRTHROTTLING-enabled' => false,
 	'SONARRTHROTTLING-pluginAuth' => '1'
 );
