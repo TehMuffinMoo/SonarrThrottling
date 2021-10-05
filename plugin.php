@@ -32,7 +32,7 @@ class sonarrThrottlingPlugin extends Organizr
 				$this->settingsOption('input', 'SONARRTHROTTLING-EpisodeCountThreshold', ['label' => 'Episode Threshold']),
 				$this->settingsOption('input', 'SONARRTHROTTLING-EpisodeSearchCount', ['label' => 'Amount of episodes to perform initial scan for']),
 			),
-			'Sonarr' => array(
+			'Sonarr Settings' => array(
 				$this->settingsOption('multiple-url', 'sonarrURL'),
 				$this->settingsOption('multiple-token', 'sonarrToken'),
 				$this->settingsOption('disable-cert-check', 'sonarrDisableCertCheck'),
