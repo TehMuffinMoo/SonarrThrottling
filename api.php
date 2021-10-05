@@ -50,7 +50,7 @@ $app->post('/plugins/sonarrthrottling/webhooks/overseerr', function ($request, $
 $app->get('/plugins/sonarrthrottling/throttled', function ($request, $response, $args) {
 	$sonarrThrottlingPlugin = new sonarrThrottlingPlugin();
 	if ($sonarrThrottlingPlugin->checkRoute($request)) {
-		if ($sonarrThrottlingPlugin->qualifyRequest(1, true)) {
+		if ($sonarrThrottlingPlugin->qualifyRequest($sonarrThrottlingPlugin->config['SONARRTHROTTLING-pluginAuth'], true)) {
 			$GLOBALS['api']['response']['data'] = $sonarrThrottlingPlugin->getSonarrThrottled();
 		}
 	}
