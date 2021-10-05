@@ -29,7 +29,7 @@ function togglesonarrThrottlingPlugin(){
 						<h2 class="text-center loadingsonarrThrottling" lang="en"><i class="fa fa-spin fa-spinner"></i></h2>
 						<div class="row">
 							<div class="col-lg-12">
-								<select class="form-control" name="tvShow" id="tvShow" style="display:none">
+								<select class="form-control" name="tvShows" id="tvShows">
 									<option value="">Choose a TV Show</option>
 								</select><br>
 							</div>
@@ -76,18 +76,21 @@ function sonarrThrottlingPluginLoadShows(){
 		$('.loadingPlexLibraries').remove();
 		OrganizrApiError(xhr);
 	});
+	const thtml = $("#sonarrThrottling ");
+	thtml.append('<script>sonarrThrottlingPluginOnSelect();</script>');
 }
 
 function sonarrThrottlingPluginLoadShowItem(tvShow){
 	const thtml = $("#sonarrThrottling ");
 	var title = tvShow.Title;
+	var tvdbId = tvShow.tvdbId;
 	var imageUrl = tvShow.ImageUrl;
 	var progress = tvShow.Progress;
 	var progressFriendly = Math.round(tvShow.Progress);
 	var episodeCount = tvShow.EpisodeCount;
 	var episodeFileCount = tvShow.EpisodeFileCount;
 	let libItem = `
-		<tr class="tvShow ${title}">
+		<tr class="tvShow hidden" id="${tvdbId}">
 			<td><img src="${imageUrl}" alt="image" width="96" height="128"></td>
 			<td>${title}</td>
 			<td>
@@ -99,6 +102,21 @@ function sonarrThrottlingPluginLoadShowItem(tvShow){
 		</tr>
 	`;
 	thtml.append(libItem);
+	const tvhtml = $("#tvShows ");
+	tvhtml.append('<option value="'+tvdbId+'">'+title+'</option>');
 }
 
+function sonarrThrottlingPluginOnSelect() {
+    $('#tvShows').change(function () {
+		Array.from(document.getElementsByClassName('tvShow')).forEach(
+			function(element, index, array) {
+				element.style.display = "none";
+			}
+		);
+		document.getElementById(this.value).style.display = "table-row";
+		if($('.tvShow').hasClass('hidden')){
+			$('.tvShow').removeClass('hidden');
+		}
+    });
+}
 // EVENTS and LISTENERS

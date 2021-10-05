@@ -190,8 +190,13 @@ class sonarrThrottlingPlugin extends Organizr
 		$ThrottledTagName = $this->config['SONARRTHROTTLING-ThrottledTagName'];
 		$SonarrTagObj = $this->getSonarrTags($SonarrHost,$SonarrAPIKey);
 		$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
-		$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
-		return $ThrottledTag;
+		if (!$ThrottledTagKey) {
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to find throttled tag in Sonarr.');
+			return false;
+		} else {
+			$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
+			return $ThrottledTag;
+		}
 	}
 
 	public function getSonarrThrottled() {
@@ -220,7 +225,8 @@ class sonarrThrottlingPlugin extends Organizr
 						"EpisodeFileCount" => $SonarrSeriesItem->episodeFileCount,
 						"TotalEpisodeCount" => $SonarrSeriesItem->totalEpisodeCount,
 						"Progress" => $SonarrSeriesItemPerc,
-						"ImageUrl" => $SonarrSeriesObjImage
+						"ImageUrl" => $SonarrSeriesObjImage,
+						"tvdbId" => $SonarrSeriesItem->tvdbId
 					);
 				}
 			}
