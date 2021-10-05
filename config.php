@@ -9,5 +9,6 @@ return array(
 	'SONARRTHROTTLING-SeasonCountThreshold' => "5",
 	'SONARRTHROTTLING-EpisodeCountThreshold' => "25",
 	'SONARRTHROTTLING-EpisodeSearchCount' => "10",
-	'SONARRTHROTTLING-pluginAuth' => '1'
+	'SONARRTHROTTLING-pluginAuth' => '1',
+	'SONARRTHROTTLING-ApiToken' => ''
 );

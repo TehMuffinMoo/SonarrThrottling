@@ -27,7 +27,7 @@ $app->post('/plugins/sonarrthrottling/webhooks/tautulli', function ($request, $r
 	$sonarrThrottlingPlugin = new sonarrThrottlingPlugin();
 		$Headers = getallheaders();
 		// Allow 'Authorization' header to be used in this context, to enable compatibility with Overseerr Webhooks.
-		if ($Headers['Authorization'] == $sonarrThrottlingPlugin->config['organizrAPI'] || $sonarrThrottlingPlugin->qualifyRequest(1, true)) {
+		if ($Headers['Authorization'] == $sonarrThrottlingPlugin->config['SONARRTHROTTLING-ApiToken'] || $sonarrThrottlingPlugin->qualifyRequest(1, true)) {
 			$GLOBALS['api']['response']['data'] = $sonarrThrottlingPlugin->TautulliWebhook(file_get_contents('php://input'));
 		}
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -39,7 +39,7 @@ $app->post('/plugins/sonarrthrottling/webhooks/overseerr', function ($request, $
 	$sonarrThrottlingPlugin = new sonarrThrottlingPlugin();
 		$Headers = getallheaders();
 		// Allow 'Authorization' header to be used in this context, to enable compatibility with Overseerr Webhooks.
-		if ($Headers['Authorization'] == $sonarrThrottlingPlugin->config['organizrAPI'] || $sonarrThrottlingPlugin->qualifyRequest(1, true)) {
+		if ($Headers['Authorization'] == $sonarrThrottlingPlugin->config['SONARRTHROTTLING-ApiToken'] || $sonarrThrottlingPlugin->qualifyRequest(1, true)) {
 			$GLOBALS['api']['response']['data'] = $sonarrThrottlingPlugin->OverseerrWebhook(file_get_contents('php://input'));
 		}
 	$response->getBody()->write(jsonE($GLOBALS['api']));

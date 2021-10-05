@@ -119,4 +119,8 @@ function sonarrThrottlingPluginOnSelect() {
 		}
     });
 }
+
+function sonarrThrottlingPluginGenerateAPIKey() {
+	document.getElementsByName("SONARRTHROTTLING-ApiToken")[0].value = createRandomString(20);
+}
 // EVENTS and LISTENERS

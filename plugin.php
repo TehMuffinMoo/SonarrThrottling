@@ -44,7 +44,7 @@ class sonarrThrottlingPlugin extends Organizr
 				<p>Tautulli JSON Headers - API Key for Sonarr Throttling Plugin</p>
 				<pre>
 {
-	"authorization": "' . $this->config['organizrAPI'] . '"
+	"authorization": "' . $this->config['SONARRTHROTTLING-ApiToken'] . '"
 }				</pre>
 				<br/>
 				<h3>Overseerr Webhook</h3>
@@ -72,7 +72,7 @@ class sonarrThrottlingPlugin extends Organizr
     "{{extra}}": []
 }				</pre>
 				<p>Overseerr Authorization Header - API Key for Sonarr Throttling Plugin</p>
-				<pre>' . $this->config['organizrAPI'] . '</pre>
+				<pre>' . $this->config['SONARRTHROTTLING-ApiToken'] . '</pre>
 				<br/>']),
 			),
 			'Plugin Settings' => array(
@@ -81,6 +81,9 @@ class sonarrThrottlingPlugin extends Organizr
 				$this->settingsOption('input', 'SONARRTHROTTLING-SeasonCountThreshold', ['label' => 'Season Threshold']),
 				$this->settingsOption('input', 'SONARRTHROTTLING-EpisodeCountThreshold', ['label' => 'Episode Threshold']),
 				$this->settingsOption('input', 'SONARRTHROTTLING-EpisodeSearchCount', ['label' => 'Amount of episodes to perform initial scan for']),
+				$this->settingsOption('token', 'SONARRTHROTTLING-ApiToken'),
+				$this->settingsOption('blank'),
+				$this->settingsOption('button', '', ['label' => 'Generate API Token', 'icon' => 'fa fa-undo', 'text' => 'Retrieve', 'attr' => 'onclick="sonarrThrottlingPluginGenerateAPIKey();"']),
 			),
 			'Sonarr Settings' => array(
 				$this->settingsOption('multiple-url', 'sonarrURL'),
