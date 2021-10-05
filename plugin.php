@@ -346,7 +346,6 @@ class sonarrThrottlingPlugin extends Organizr
 			return false;
 		}
 
-		$DateTime = date("d-m-Y h:i:s");
 		## Check for valid data and API Key
 		if ($request == null) {
 			$this->setResponse(409, 'PHP Input Empty');
@@ -393,14 +392,14 @@ class sonarrThrottlingPlugin extends Organizr
 				if ($Episode->hasFile == false && $Episode->seasonNumber != "0" && $Episode->monitored == true) {
 					## Send Scan Request to Sonarr
 					$EpisodesToSearch[] = $Episode->id; // Episode IDs
-					$SonarrSearchPostData['name'] = "EpisodeSearch"; // Sonarr command to run
+					$SonarrSearchPostData['name'] = "EpisodeSearch";  // Sonarr command to run
 					$SonarrSearchPostData['episodeIds'] = $EpisodesToSearch; // Episode IDs Array
 					$SonarrSearchPostData = json_encode($SonarrSearchPostData); // POST Data
 					$this->runSonarrCommand($SonarrHost,$SonarrAPIKey,$SonarrSearchPostData);
 					$MoreEpisodesAvailable = true;
 					
-					$Response = $DateTime.' - Search request sent for: '.$SonarrSeriesObj->title.' - S'.$Episode->seasonNumber.'E'.$Episode->episodeNumber.' - '.$Episode->title.PHP_EOL;
-					//file_put_contents( 'tautulli.log', $Response, FILE_APPEND );
+					$Response = 'Search request sent for: '.$SonarrSeriesObj->title.' - S'.$Episode->seasonNumber.'E'.$Episode->episodeNumber.' - '.$Episode->title.PHP_EOL;
+					$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
 					$this->setResponse(200, $Response);
 					break;
 				}
@@ -416,7 +415,7 @@ class sonarrThrottlingPlugin extends Organizr
 				## Submit data back to Sonarr
 				$SonarrSeriesJSON = json_encode($SonarrSeriesObj); // Convert back to JSON
 				$SonarrSeriesPUT = $this->setSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID,$SonarrSeriesJSON); // POST Data to Sonarr
-				$Response = $DateTime.' - All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj->title.' and marked as monitored.'.PHP_EOL;
+				$Response = 'All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj->title.' and marked as monitored.';
 				$this->setResponse(200, $Response);
 				$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
 				return true;
