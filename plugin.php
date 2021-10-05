@@ -21,9 +21,59 @@ class sonarrThrottlingPlugin extends Organizr
 	public function _pluginGetSettings()
 	{
 		$this->setGroupOptionsVariable();
+
 		return array(
 			'About' => array (
-				$this->settingsOption('notice', '', ['title' => 'Information', 'body' => 'This plugin allows you to specify a threshold for TV Show sizes and throttles downloads accordingly. A webhook is added to Overseerr & Tautulli. Every time an item is added through Overseerr, the Overseerr Webhook is triggered which checks the show\'s season and episode count. If either of these values breach thresholds, the TV Show will be marked as throttled using a tag within Sonarr. A second Webhook is then configured within Tautulli to trigger when content is watched. This webhook checks if the show is throttled and if so, sends a search request for the next available episode. This prevents large TV Shows from being downloaded whilst never getting watched. By using this method, there should always be at least X (Default 10) number of available epsiodes ahead of the last watched episode.']),
+				$this->settingsOption('notice', '', ['title' => 'Information', 'body' => '
+				<h3 lang="en">Plugin Information</h3>
+				<p>This plugin allows you to specify a threshold for TV Show sizes and throttles downloads accordingly. This works by configuring a webhook in Overseerr and Tautulli to manage TV Show episode downloading based on only if episodes are being watched. Shows over a configured threshold will be marked as throttled and only the first X number of episodes will be downloaded. Further episodes will only be downloaded when an event is logged in Tautulli. Using this method prevents large TV Shows from being downloaded for nobody to watch them.</p>
+				<p>More information available within the <a href="https://github.com/TehMuffinMoo/SonarrThrottling" target="blank">README</a></p>
+				<br/>
+				<h3>Tautulli Webhook</h3>
+				<p>Configure this Webhook in Tautulli. Using the <code>Playback Start</code> or <code>Watched</code> triggers will provide the best experience.</p>
+				<code class="elip hidden-xs">' . $this->getServerPath() . 'api/v2/sonarrthrottling/webhooks/tautulli/</code>
+				<br/>
+				<p>Tautulli JSON Data - This can be customised as long as <b>tvdbId</b> is present</p>
+				<pre>
+{
+	"action": "{action}",
+	"title": "{title}",
+	"username": "{username}",
+	"tvdbId": "{thetvdb_id}"
+}				</pre>
+				<p>Tautulli JSON Headers - API Key for Sonarr Throttling Plugin</p>
+				<pre>
+{
+	"authorization": "' . $this->config['organizrAPI'] . '"
+}				</pre>
+				<br/>
+				<h3>Overseerr Webhook</h3>
+				<p>Configure this Webhook in Overseerr</p>
+				<code class="elip hidden-xs">' . $this->getServerPath() . 'api/v2/sonarrthrottling/webhooks/overseerr/</code>
+				<br/>
+				<p>Overseerr JSON Payload (Default Webhook) - This can be customised as long as <b>media->tvdbId</b> is present</p>
+				<pre>
+{
+    "notification_type": "{{notification_type}}",
+    "subject": "{{subject}}",
+    "message": "{{message}}",
+    "image": "{{image}}",
+    "email": "{{notifyuser_email}}",
+    "username": "{{notifyuser_username}}",
+    "avatar": "{{notifyuser_avatar}}",
+    "{{media}}": {
+        "media_type": "{{media_type}}",
+        "tmdbId": "{{media_tmdbid}}",
+        "imdbId": "{{media_imdbid}}",
+        "tvdbId": "{{media_tvdbid}}",
+        "status": "{{media_status}}",
+        "status4k": "{{media_status4k}}"
+    },
+    "{{extra}}": []
+}				</pre>
+				<p>Overseerr Authorization Header - API Key for Sonarr Throttling Plugin</p>
+				<pre>' . $this->config['organizrAPI'] . '</pre>
+				<br/>']),
 			),
 			'Plugin Settings' => array(
 				$this->settingsOption('auth', 'SONARRTHROTTLING-pluginAuth'),
@@ -246,11 +296,6 @@ class sonarrThrottlingPlugin extends Organizr
 		## Get Throttled Tag
 		$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
 
-		############# DEBUG #############
-		$req_dump = print_r( $request, true );
-		$fp = file_put_contents( 'tautulli-request.log', $req_dump );
-		#################################
-
 		$DateTime = date("d-m-Y h:i:s");
 		## Check for valid data and API Key
 		if ($request == null) {
@@ -342,11 +387,6 @@ class sonarrThrottlingPlugin extends Organizr
 
 	public function OverseerrWebhook($request)
 	{
-
-		############# DEBUG #############
-		$req_dump = print_r( $request, true );
-		$fp = file_put_contents( 'overseerr-request.log', $req_dump );
-		#################################
 
 		## Check for data
 		if ($request == null) {
