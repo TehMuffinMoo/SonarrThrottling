@@ -22,6 +22,9 @@ class sonarrThrottlingPlugin extends Organizr
 	{
 		$this->setGroupOptionsVariable();
 		return array(
+			'About' => array (
+				$this->settingsOption('notice', '', ['title' => 'Information', 'body' => 'This plugin allows you to specify a threshold for TV Show sizes and throttles downloads accordingly. A webhook is added to Overseerr & Tautulli. Every time an item is added through Overseerr, the Overseerr Webhook is triggered which checks the show\'s season and episode count. If either of these values breach thresholds, the TV Show will be marked as throttled using a tag within Sonarr. A second Webhook is then configured within Tautulli to trigger when content is watched. This webhook checks if the show is throttled and if so, sends a search request for the next available episode. This prevents large TV Shows from being downloaded whilst never getting watched. By using this method, there should always be at least X (Default 10) number of available epsiodes ahead of the last watched episode.']),
+			),
 			'Plugin Settings' => array(
 				$this->settingsOption('auth', 'SONARRTHROTTLING-pluginAuth'),
 				$this->settingsOption('input', 'SONARRTHROTTLING-ThrottledTagName', ['label' => 'The name of the tag you want to use in Sonarr']),
@@ -35,7 +38,7 @@ class sonarrThrottlingPlugin extends Organizr
 				$this->settingsOption('disable-cert-check', 'sonarrDisableCertCheck'),
 				$this->settingsOption('use-custom-certificate', 'sonarrUseCustomCertificate'),
 				$this->settingsOption('test', 'sonarr'),
-			)
+			),
 		);
 	}
 

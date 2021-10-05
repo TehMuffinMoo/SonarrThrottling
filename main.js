@@ -64,9 +64,6 @@ function sonarrThrottlingPluginLoadShows(){
 		try {
 			$.each(data.response.data, function(_, tvShow) {
 				sonarrThrottlingPluginLoadShowItem(tvShow);
-				if($('.sonarrThrottlingTableList').hasClass('hidden')){
-					$('.sonarrThrottlingTableList').removeClass('hidden');
-				}
 			});
 			const thtml = $("#sonarrThrottling ");
 		}catch(e) {
@@ -113,6 +110,9 @@ function sonarrThrottlingPluginOnSelect() {
 				element.style.display = "none";
 			}
 		);
+		if($('.sonarrThrottlingTableList').hasClass('hidden')){
+			$('.sonarrThrottlingTableList').removeClass('hidden');
+		}
 		document.getElementById(this.value).style.display = "table-row";
 		if($('.tvShow').hasClass('hidden')){
 			$('.tvShow').removeClass('hidden');
