@@ -21,6 +21,16 @@ class sonarrThrottlingPlugin extends Organizr
 	public function _pluginGetSettings()
 	{
 		$this->setGroupOptionsVariable();
+		$SonarrServers = $this->csvHomepageUrlToken($this->config['sonarrURL'], $this->config['sonarrToken']);
+		$list = array();
+		$instance = 0;
+		foreach($SonarrServers as $key => $SonarrServer){
+			$list[$key] = [
+				"name" => $SonarrServer['url'],
+				"value" => $instance
+			];
+			$instance = $instance + 1;
+		}
 
 		return array(
 			'About' => array (
@@ -88,6 +98,7 @@ class sonarrThrottlingPlugin extends Organizr
 			'Sonarr Settings' => array(
 				$this->settingsOption('multiple-url', 'sonarrURL'),
 				$this->settingsOption('multiple-token', 'sonarrToken'),
+				$this->settingsOption('select', 'SONARRTHROTTLING-preferredSonarr', ['label' => 'Preferred Server', 'options' => $list]),
 				$this->settingsOption('disable-cert-check', 'sonarrDisableCertCheck'),
 				$this->settingsOption('use-custom-certificate', 'sonarrUseCustomCertificate'),
 				$this->settingsOption('test', 'sonarr'),
@@ -291,8 +302,9 @@ class sonarrThrottlingPlugin extends Organizr
 
 	public function getSonarrThrottled() {
 		## Set Sonarr Details
-		$SonarrHost = $this->config['sonarrURL'].'/api';
-		$SonarrAPIKey = $this->config['sonarrToken'];
+		$SonarrInstances = $this->chooseInstance($this->config['sonarrURL'],$this->config['sonarrToken'],$this->config['SONARRTHROTTLING-preferredSonarr']);
+		$SonarrHost = $SonarrInstances['url'].'/api';
+		$SonarrAPIKey = $SonarrInstances['token'];
 		$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
 		$SonarrSeriesObj = $this->getSonarrSeries($SonarrHost,$SonarrAPIKey,"");
 		$apiData = array();
@@ -326,8 +338,9 @@ class sonarrThrottlingPlugin extends Organizr
 	public function TautulliWebhook($request)
 	{
 		## Set Sonarr Details
-		$SonarrHost = $this->config['sonarrURL'].'/api';
-		$SonarrAPIKey = $this->config['sonarrToken'];
+		$SonarrInstances = $this->chooseInstance($this->config['sonarrURL'],$this->config['sonarrToken'],$this->config['SONARRTHROTTLING-preferredSonarr']);
+		$SonarrHost = $SonarrInstances['url'].'/api';
+		$SonarrAPIKey = $SonarrInstances['token'];
 
 		## Get Throttled Tag
 		$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
@@ -452,8 +465,9 @@ class sonarrThrottlingPlugin extends Organizr
 			## Sleep to allow Sonarr to update. Might add a loop checking logic here in the future.
 			sleep(10);
 			## Set Sonarr Details
-			$SonarrHost = $this->config['sonarrURL'].'/api';
-			$SonarrAPIKey = $this->config['sonarrToken'];
+			$SonarrInstances = $this->chooseInstance($this->config['sonarrURL'],$this->config['sonarrToken'],$this->config['SONARRTHROTTLING-preferredSonarr']);
+			$SonarrHost = $SonarrInstances['url'].'/api';
+			$SonarrAPIKey = $SonarrInstances['token'];
 			## Set Parameters
 			$SeasonCountThreshold = $this->config['SONARRTHROTTLING-SeasonCountThreshold'];
 			$EpisodeCountThreshold = $this->config['SONARRTHROTTLING-EpisodeCountThreshold'];
