@@ -22,14 +22,16 @@ class sonarrThrottlingPlugin extends Organizr
 	{
 		$this->setGroupOptionsVariable();
 		$SonarrServers = $this->csvHomepageUrlToken($this->config['sonarrURL'], $this->config['sonarrToken']);
-		$list = array();
-		$instance = 0;
-		foreach($SonarrServers as $key => $SonarrServer){
-			$list[$key] = [
-				"name" => $SonarrServer['url'],
-				"value" => $instance
-			];
-			$instance = $instance + 1;
+		if (!empty($SonarrServers)) {
+			$list = array();
+			foreach($SonarrServers as $key => $SonarrServer){
+				$list[$key] = [
+					"name" => $SonarrServer['url'],
+					"value" => $key
+				];
+			}
+		} else {
+			$list = [['name' => 'Refresh page to update List', 'value' => '', 'disabled' => true]];
 		}
 
 		return array(

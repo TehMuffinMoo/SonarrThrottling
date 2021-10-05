@@ -10,5 +10,6 @@ return array(
 	'SONARRTHROTTLING-EpisodeCountThreshold' => "25",
 	'SONARRTHROTTLING-EpisodeSearchCount' => "10",
 	'SONARRTHROTTLING-pluginAuth' => '1',
+	'SONARRTHROTTLING-preferredSonarr' => '0',
 	'SONARRTHROTTLING-ApiToken' => ''
 );
