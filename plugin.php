@@ -298,7 +298,6 @@ class sonarrThrottlingPlugin extends Organizr
 		$apiData = array();
 		foreach ($SonarrSeriesObj as $SonarrSeriesItem) {
 			if (in_array($ThrottledTag,$SonarrSeriesItem->tags)) {
-				//return $SonarrSeriesItem;
 				if ($SonarrSeriesItem->episodeCount != "0") {
 					$SonarrSeriesItemPerc = (100 / $SonarrSeriesItem->episodeCount) * $SonarrSeriesItem->episodeFileCount;
 					if ($SonarrSeriesItemPerc > 100) {
@@ -332,6 +331,13 @@ class sonarrThrottlingPlugin extends Organizr
 
 		## Get Throttled Tag
 		$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
+
+		## Error if Throttled tag is missing in Sonarr.
+		if (empty($ThrottledTag)) {
+			$this->setResponse(409, 'Throttling tag missing from Sonarr, check logs.');
+			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Throttling tag missing from Sonarr, check logs.', 'SYSTEM');
+			return false;
+		}
 			
 		## Error if Throttled tag is missing in Sonarr.
 		if (empty($ThrottledTag)) {
@@ -361,16 +367,9 @@ class sonarrThrottlingPlugin extends Organizr
 		## Check tvdbId exists
 		if (empty($POST_DATA['tvdbId'])) {
 			$this->setResponse(409, 'Empty tvdbId');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: Empty tvdbId', 'SYSTEM');
-				return false;
-			}
-
-		## Error if Throttled tag is missing in Sonarr. May add auto creation of tag in future.
-		//if (empty($ThrottledTag)) {
-		//	$this->setResponse(409, 'Throttled tag missing from Sonarr');
-		//	$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: Throttled tag missing from Sonarr, check configuration.', 'SYSTEM');
-		//	return false;
-		//}
+			$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: Empty tvdbId', 'SYSTEM');
+			return false;
+		}
 
 		## Set Sonarr Search Endpoint
 		$SonarrLookupObj = $this->lookupSonarrSeries($SonarrHost,$SonarrAPIKey,$POST_DATA['tvdbId']);
