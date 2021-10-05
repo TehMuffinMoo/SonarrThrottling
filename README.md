@@ -16,7 +16,7 @@ The default Overseerr Webhook template works fine, this can be modified but you 
 
 | :exclamation: Important                                                          |
 |:---------------------------------------------------------------------------|
-| The "Authorization" header must be populated with your Organizr API Token. |
+| The "Authorization" header must be populated with your Sonarr Throttling Plugin API Token. |
 
 
 ## Overseerr Webhook Example
@@ -52,7 +52,7 @@ Webhook URL: `https://OrganizrURL/api/v2/plugins/sonarrthrottling/webhooks/tautu
 ### JSON Headers
 ```
 {
-	"authorization": "OrganizrAPIToken"
+	"authorization": "SonarrThrottlingPlugin"
 }
 ```
 
