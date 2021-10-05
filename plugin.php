@@ -247,12 +247,46 @@ class sonarrThrottlingPlugin extends Organizr
 		$SonarrTagObj = $this->getSonarrTags($SonarrHost,$SonarrAPIKey);
 		$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
 		if (!$ThrottledTagKey) {
-			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to find throttled tag in Sonarr.');
-			return false;
+			$this->createThrottledTag($SonarrHost,$SonarrAPIKey);
+			$SonarrTagObj = $this->getSonarrTags($SonarrHost,$SonarrAPIKey);
+			$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
+			if (!$ThrottledTagKey) {
+				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to find throttling Sonarr tag');
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to find throttling Sonarr tag', 'SYSTEM');
+				return false;
+			} else {
+				$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
+				return $ThrottledTag;
+			}
 		} else {
 			$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
 			return $ThrottledTag;
 		}
+	}
+
+	public function createThrottledTag($SonarrHost,$SonarrAPIKey) {
+		$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey; // Set Sonarr Tag Endpoint
+		$headers = array(
+			'Accept' => 'application/json',
+			'Content-type: application/json',
+		);
+		$postData = json_encode(array(
+			"label" => $this->config['SONARRTHROTTLING-ThrottledTagName'],
+		));
+		try {
+			$response = Requests::post($SonarrTagEndpoint, $headers, $postData,[]);
+			if ($response->success) {
+				$SonarrTagObj = json_decode($response->body);
+				return $SonarrTagObj;
+			} else {
+				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag');
+				return false;
+			}
+		} catch (Requests_Exception $e) {
+			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag: ' . $e->getMessage(), 'SYSTEM');
+			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag' . $e->getMessage(), 409);
+			return false;
+		}		
 	}
 
 	public function getSonarrThrottled() {
@@ -298,6 +332,13 @@ class sonarrThrottlingPlugin extends Organizr
 
 		## Get Throttled Tag
 		$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
+			
+		## Error if Throttled tag is missing in Sonarr.
+		if (empty($ThrottledTag)) {
+			$this->setResponse(409, 'Throttling tag missing from Sonarr, check logs.');
+			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Throttling tag missing from Sonarr, check logs.', 'SYSTEM');
+			return false;
+		}
 
 		$DateTime = date("d-m-Y h:i:s");
 		## Check for valid data and API Key
@@ -325,11 +366,11 @@ class sonarrThrottlingPlugin extends Organizr
 			}
 
 		## Error if Throttled tag is missing in Sonarr. May add auto creation of tag in future.
-		if (empty($ThrottledTag)) {
-			$this->setResponse(409, 'Throttled tag missing from Sonarr');
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: Throttled tag missing from Sonarr, check configuration.', 'SYSTEM');
-			return false;
-		}
+		//if (empty($ThrottledTag)) {
+		//	$this->setResponse(409, 'Throttled tag missing from Sonarr');
+		//	$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: Throttled tag missing from Sonarr, check configuration.', 'SYSTEM');
+		//	return false;
+		//}
 
 		## Set Sonarr Search Endpoint
 		$SonarrLookupObj = $this->lookupSonarrSeries($SonarrHost,$SonarrAPIKey,$POST_DATA['tvdbId']);
@@ -360,7 +401,7 @@ class sonarrThrottlingPlugin extends Organizr
 					$MoreEpisodesAvailable = true;
 					
 					$Response = $DateTime.' - Search request sent for: '.$SonarrSeriesObj->title.' - S'.$Episode->seasonNumber.'E'.$Episode->episodeNumber.' - '.$Episode->title.PHP_EOL;
-					file_put_contents( 'tautulli.log', $Response, FILE_APPEND );
+					//file_put_contents( 'tautulli.log', $Response, FILE_APPEND );
 					$this->setResponse(200, $Response);
 					break;
 				}
@@ -423,10 +464,10 @@ class sonarrThrottlingPlugin extends Organizr
 			## Get Throttled Tag
 			$ThrottledTag = $this->getThrottledTag($SonarrHost,$SonarrAPIKey);
 			
-			## Error if Throttled tag is missing in Sonarr. May add auto creation of tag in future.
+			## Error if Throttled tag is missing in Sonarr.
 			if (empty($ThrottledTag)) {
-				$this->setResponse(409, 'Throttled tag missing from Sonarr');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Throttled tag missing from Sonarr, check configuration.', 'SYSTEM');
+				$this->setResponse(409, 'Throttling tag missing from Sonarr, check logs.');
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Throttling tag missing from Sonarr, check logs.', 'SYSTEM');
 				return false;
 			}
 				
