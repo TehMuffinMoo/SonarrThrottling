@@ -1,11 +1,22 @@
 .progress {
     height: 20px;
-}
-.progress {
     position: relative;
+    border-radius: 10px;
 }
 .progress span {
     position: absolute;
     display: block;
     width: 100%;
+    border-radius: 10px;
+}
+.progress-bar-title {
+  position: absolute;
+  text-align: center;
+  line-height: 20px; /* line-height should be equal to bar height */
+  border-radius: 10px;
+  overflow: hidden;
+  color: #fff;
+  right: 0;
+  left: 0;
+  top: 0;
 }

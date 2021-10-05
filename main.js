@@ -38,9 +38,9 @@ function togglesonarrThrottlingPlugin(){
 							<table class="table color-bordered-table purple-bordered-table text-left">
 								<thead>
 									<tr>
-										<th width="10%">#</th>
-										<th width="25%">Name</th>
-										<th width="65%">Progress</th>
+										<th width="20%">#</th>
+										<th>Name</th>
+										<th>Progress</th>
 									</tr>
 								</thead>
 								<tbody id="sonarrThrottling"></tbody>
@@ -92,8 +92,8 @@ function sonarrThrottlingPluginLoadShowItem(tvShow){
 			<td>${title}</td>
 			<td>
 				<div class="progress position-relative">
-    				<div class="progress-bar" role="progressbar" style="width: ${progress}%" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"></div>
-    				<span>${episodeFileCount} / ${episodeCount} (${progressFriendly}%)</span>
+    				<div class="progress-bar bg-info" role="progressbar" style="width: ${progress}%" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"></div>
+					<div class="progress-bar-title">${episodeFileCount} / ${episodeCount} (${progressFriendly}%)</div>
 				</div>
 		  	</td>
 		</tr>
