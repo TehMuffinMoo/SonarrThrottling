@@ -26,7 +26,7 @@ class sonarrThrottlingPlugin extends Organizr
 			'About' => array (
 				$this->settingsOption('notice', '', ['title' => 'Information', 'body' => '
 				<h3 lang="en">Plugin Information</h3>
-				<p>This plugin allows you to specify a threshold for TV Show sizes and throttles downloads accordingly. This works by configuring a webhook in Overseerr and Tautulli to manage TV Show episode downloading based on only if episodes are being watched. Shows over a configured threshold will be marked as throttled and only the first X number of episodes will be downloaded. Further episodes will only be downloaded when an event is logged in Tautulli. Using this method prevents large TV Shows from being downloaded for nobody to watch them.</p>
+				<p>This plugin allows you to specify a threshold for TV Show sizes and throttles downloads accordingly. It works by configuring a webhook in Overseerr and Tautulli to manage TV Show episode downloading based on if episodes are being watched. Shows with seasons/episodes over a configured threshold will be marked as throttled and only the first X number of episodes will be downloaded. Further episodes will only be downloaded when an event is logged in Tautulli. Using this method prevents large TV Shows from being downloaded for nobody to watch them.</p>
 				<p>More information available within the <a href="https://github.com/TehMuffinMoo/SonarrThrottling" target="blank">README</a></p>
 				<br/>
 				<h3>Tautulli Webhook</h3>
