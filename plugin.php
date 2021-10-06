@@ -372,7 +372,7 @@ class sonarrThrottlingPlugin extends Organizr
 			return true;
 		}
 
-		if ($POST_DATA['media_type'] == "show") {
+		if ($POST_DATA['media_type'] == "episode") {
 			
 			## Check tvdbId exists
 			if (empty($POST_DATA['tvdbId'])) {
