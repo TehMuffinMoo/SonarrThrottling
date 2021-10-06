@@ -65,3 +65,10 @@ Webhook URL: `https://OrganizrURL/api/v2/plugins/sonarrthrottling/webhooks/tautu
     "tvdbId": "{thetvdb_id}"
 }
 ```
+
+## Screenshots
+![plugin-settings-about](https://user-images.githubusercontent.com/51195492/136164479-d06e8eff-6969-43e4-8b0b-92897e2ba142.png)
+![plugin-settings](https://user-images.githubusercontent.com/51195492/136164475-ff9f7274-0bef-4368-9865-da9c4dbb4fcd.png)
+![plugin-settings-sonarr](https://user-images.githubusercontent.com/51195492/136164481-2aedd17a-f042-431b-b3d8-b6a6b2b4e167.png)
+![plugin-modal-dropdown](https://user-images.githubusercontent.com/51195492/136164487-2f33c921-998d-41bd-b0ff-3563ffd04531.png)
+![plugin-modal-details](https://user-images.githubusercontent.com/51195492/136164486-9b422d2a-0d63-4b85-bf48-45c7eaf74667.png)
