@@ -12,7 +12,7 @@
   - If all episodes have downloaded, mark TV show as monitored and remove throttled tag
 
 
-The default Overseerr Webhook template works fine, this can be modified but you must ensure {{media}}->{{tvdbId}} remains populated.
+The default Overseerr Webhook template works fine, this can be modified but you must ensure {{media}}->{{tvdbId}} and {{media}}->{{media_type}} remain populated.
 
 | :exclamation: Important                                                          |
 |:---------------------------------------------------------------------------|
@@ -62,6 +62,7 @@ Webhook URL: `https://OrganizrURL/api/v2/plugins/sonarrthrottling/webhooks/tautu
    "action": "{action}",
     "title": "{title}",
     "username": "{username}",
+    "mediaType": "{media_type}",
     "tvdbId": "{thetvdb_id}"
 }
 ```

@@ -45,14 +45,15 @@ class sonarrThrottlingPlugin extends Organizr
 				<p>Configure this Webhook in Tautulli. Using the <code>Playback Start</code> or <code>Watched</code> triggers will provide the best experience.</p>
 				<code class="elip hidden-xs">' . $this->getServerPath() . 'api/v2/sonarrthrottling/webhooks/tautulli/</code>
 				<br/>
-				<p>Tautulli JSON Data - This can be customised as long as <b>tvdbId</b> is present</p>
+				<p>Tautulli JSON Data - This can be customised as long as <b>tvdbId</b> and <b>media_type</b> are present.</p>
 				<pre>
 {
-	"action": "{action}",
-	"title": "{title}",
-	"username": "{username}",
-	"tvdbId": "{thetvdb_id}"
-}				</pre>
+   "action": "{action}",
+    "title": "{title}",
+    "username": "{username}",
+    "media_type": "{media_type}",
+    "tvdbId": "{thetvdb_id}"
+}			</pre>
 				<p>Tautulli JSON Headers - API Key for Sonarr Throttling Plugin</p>
 				<pre>
 {
@@ -63,7 +64,7 @@ class sonarrThrottlingPlugin extends Organizr
 				<p>Configure this Webhook in Overseerr</p>
 				<code class="elip hidden-xs">' . $this->getServerPath() . 'api/v2/sonarrthrottling/webhooks/overseerr/</code>
 				<br/>
-				<p>Overseerr JSON Payload (Default Webhook) - This can be customised as long as <b>media->tvdbId</b> is present</p>
+				<p>Overseerr JSON Payload (Default Webhook) - This can be customised as long as <b>media->tvdbId</b> and <b>media->media_type</b> are present</p>
 				<pre>
 {
     "notification_type": "{{notification_type}}",
@@ -354,13 +355,6 @@ class sonarrThrottlingPlugin extends Organizr
 			return false;
 		}
 			
-		## Error if Throttled tag is missing in Sonarr.
-		if (empty($ThrottledTag)) {
-			$this->setResponse(409, 'Throttling tag missing from Sonarr, check logs.');
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Throttling tag missing from Sonarr, check logs.', 'SYSTEM');
-			return false;
-		}
-
 		## Check for valid data and API Key
 		if ($request == null) {
 			$this->setResponse(409, 'PHP Input Empty');
@@ -377,66 +371,72 @@ class sonarrThrottlingPlugin extends Organizr
 			$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook Test Received.', 'SYSTEM');
 			return true;
 		}
-		
-		## Check tvdbId exists
-		if (empty($POST_DATA['tvdbId'])) {
-			$this->setResponse(409, 'Empty tvdbId');
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: Empty tvdbId', 'SYSTEM');
-			return false;
-		}
 
-		## Set Sonarr Search Endpoint
-		$SonarrLookupObj = $this->lookupSonarrSeries($SonarrHost,$SonarrAPIKey,$POST_DATA['tvdbId']);
-
-		## Check if Sonarr ID Exists
-		if (empty($SonarrLookupObj[0]->id)) {
-			$this->setResponse(409, 'TV Show not in Sonarr database.');
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: TV Show not in Sonarr database.', 'SYSTEM');
-			return false;
-		}
+		if ($POST_DATA['media_type'] == "show") {
 			
-		## Query Sonarr Series API
-		$SeriesID = $SonarrLookupObj[0]->id;
-		$SonarrSeriesObj = $this->getSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID);
-			
-		## Query Sonarr Episode API
-		if (in_array($ThrottledTag,$SonarrSeriesObj->tags)) {
-			$SonarrEpisodeObj = $this->getSonarrEpisodes($SonarrHost,$SonarrAPIKey,$SeriesID);
-			## Find next incremental episode to download
-			foreach ($SonarrEpisodeObj as $Episode) {
-				if ($Episode->hasFile == false && $Episode->seasonNumber != "0" && $Episode->monitored == true) {
-					## Send Scan Request to Sonarr
-					$EpisodesToSearch[] = $Episode->id; // Episode IDs
-					$SonarrSearchPostData['name'] = "EpisodeSearch";  // Sonarr command to run
-					$SonarrSearchPostData['episodeIds'] = $EpisodesToSearch; // Episode IDs Array
-					$SonarrSearchPostData = json_encode($SonarrSearchPostData); // POST Data
-					$this->runSonarrCommand($SonarrHost,$SonarrAPIKey,$SonarrSearchPostData);
-					$MoreEpisodesAvailable = true;
-					
-					$Response = 'Search request sent for: '.$SonarrSeriesObj->title.' - S'.$Episode->seasonNumber.'E'.$Episode->episodeNumber.' - '.$Episode->title.PHP_EOL;
-					$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
-					$this->setResponse(200, $Response);
-					break;
-				}
+			## Check tvdbId exists
+			if (empty($POST_DATA['tvdbId'])) {
+				$this->setResponse(409, 'Empty tvdbId');
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: Empty tvdbId', 'SYSTEM');
+				return false;
 			}
-			if (empty($MoreEpisodesAvailable)) {
-				## Find Throttled Tag and remove it
-				$SonarrSeriesObjtags[] = $SonarrSeriesObj->tags;
-				$ArrKey = array_search($ThrottledTag, $SonarrSeriesObjtags['0']);
-				unset($SonarrSeriesObjtags['0'][$ArrKey]);
-				$SonarrSeriesObj->tags = $SonarrSeriesObjtags['0'];
-				## Mark TV Show as Monitored
-				$SonarrSeriesObj->monitored = true;
-				## Submit data back to Sonarr
-				$SonarrSeriesJSON = json_encode($SonarrSeriesObj); // Convert back to JSON
-				$SonarrSeriesPUT = $this->setSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID,$SonarrSeriesJSON); // POST Data to Sonarr
-				$Response = 'All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj->title.' and marked as monitored.';
-				$this->setResponse(200, $Response);
-				$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
+
+			## Set Sonarr Search Endpoint
+			$SonarrLookupObj = $this->lookupSonarrSeries($SonarrHost,$SonarrAPIKey,$POST_DATA['tvdbId']);
+
+			## Check if Sonarr ID Exists
+			if (empty($SonarrLookupObj[0]->id)) {
+				$this->setResponse(409, 'TV Show not in Sonarr database.');
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: TV Show not in Sonarr database.', 'SYSTEM');
+				return false;
+			}
+				
+			## Query Sonarr Series API
+			$SeriesID = $SonarrLookupObj[0]->id;
+			$SonarrSeriesObj = $this->getSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID);
+				
+			## Query Sonarr Episode API
+			if (in_array($ThrottledTag,$SonarrSeriesObj->tags)) {
+				$SonarrEpisodeObj = $this->getSonarrEpisodes($SonarrHost,$SonarrAPIKey,$SeriesID);
+				## Find next incremental episode to download
+				foreach ($SonarrEpisodeObj as $Episode) {
+					if ($Episode->hasFile == false && $Episode->seasonNumber != "0" && $Episode->monitored == true) {
+						## Send Scan Request to Sonarr
+						$EpisodesToSearch[] = $Episode->id; // Episode IDs
+						$SonarrSearchPostData['name'] = "EpisodeSearch";  // Sonarr command to run
+						$SonarrSearchPostData['episodeIds'] = $EpisodesToSearch; // Episode IDs Array
+						$SonarrSearchPostData = json_encode($SonarrSearchPostData); // POST Data
+						$this->runSonarrCommand($SonarrHost,$SonarrAPIKey,$SonarrSearchPostData);
+						$MoreEpisodesAvailable = true;
+						
+						$Response = 'Search request sent for: '.$SonarrSeriesObj->title.' - S'.$Episode->seasonNumber.'E'.$Episode->episodeNumber.' - '.$Episode->title.PHP_EOL;
+						$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
+						$this->setResponse(200, $Response);
+						break;
+					}
+				}
+				if (empty($MoreEpisodesAvailable)) {
+					## Find Throttled Tag and remove it
+					$SonarrSeriesObjtags[] = $SonarrSeriesObj->tags;
+					$ArrKey = array_search($ThrottledTag, $SonarrSeriesObjtags['0']);
+					unset($SonarrSeriesObjtags['0'][$ArrKey]);
+					$SonarrSeriesObj->tags = $SonarrSeriesObjtags['0'];
+					## Mark TV Show as Monitored
+					$SonarrSeriesObj->monitored = true;
+					## Submit data back to Sonarr
+					$SonarrSeriesJSON = json_encode($SonarrSeriesObj); // Convert back to JSON
+					$SonarrSeriesPUT = $this->setSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID,$SonarrSeriesJSON); // POST Data to Sonarr
+					$Response = 'All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj->title.' and marked as monitored.';
+					$this->setResponse(200, $Response);
+					$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
+					return true;
+				}
+			} else {
+				$this->setResponse(200, 'TV Show not throttled.');
 				return true;
 			}
 		} else {
-			$this->setResponse(200, 'TV Show not throttled.');
+			$this->setResponse(200, 'Not a TV Show.');
 			return true;
 		}
 	}
