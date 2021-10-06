@@ -57,10 +57,10 @@ Webhook URL: `https://OrganizrURL/api/v2/plugins/sonarrthrottling/webhooks/tautu
 ```
 
 ### JSON Data
-This can follow whatever format you like, but you must ensure {{media}}->{{tvdbId}} and {{media}}->{{media_type}} remain populated.
+This can follow whatever format you like, but you must ensure {tvdbId} and {media_type} remain populated.
 ```
 {
-   "action": "{action}",
+    "action": "{action}",
     "title": "{title}",
     "username": "{username}",
     "mediaType": "{media_type}",
