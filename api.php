@@ -3,7 +3,7 @@ $app->get('/plugins/sonarrthrottling/settings', function ($request, $response, $
 	$sonarrThrottlingPlugin = new sonarrThrottlingPlugin();
 	if ($sonarrThrottlingPlugin->checkRoute($request)) {
 		if ($sonarrThrottlingPlugin->qualifyRequest(1, true)) {
-			$GLOBALS['api']['response']['data'] = $sonarrThrottlingPlugin->_pluginGetSettings();
+			$GLOBALS['api']['response']['data'] = $sonarrThrottlingPlugin->_sonarrThrottlingPluginGetSettings();
 		}
 	}
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -15,7 +15,7 @@ $app->get('/plugins/sonarrthrottling/launch', function ($request, $response, $ar
 	$sonarrThrottlingPlugin = new sonarrThrottlingPlugin();
 	if ($sonarrThrottlingPlugin->checkRoute($request)) {
 		if ($sonarrThrottlingPlugin->qualifyRequest($sonarrThrottlingPlugin->config['SONARRTHROTTLING-pluginAuth'], true)) {
-			$sonarrThrottlingPlugin->_pluginLaunch();
+			$sonarrThrottlingPlugin->_sonarrThrottlingPluginLaunch();
 		}
 	}
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -51,7 +51,7 @@ $app->get('/plugins/sonarrthrottling/throttled', function ($request, $response, 
 	$sonarrThrottlingPlugin = new sonarrThrottlingPlugin();
 	if ($sonarrThrottlingPlugin->checkRoute($request)) {
 		if ($sonarrThrottlingPlugin->qualifyRequest($sonarrThrottlingPlugin->config['SONARRTHROTTLING-pluginAuth'], true)) {
-			$GLOBALS['api']['response']['data'] = $sonarrThrottlingPlugin->getSonarrThrottled();
+			$GLOBALS['api']['response']['data'] = $sonarrThrottlingPlugin->sonarrThrottlingPluginGetSonarrThrottled();
 		}
 	}
 	$response->getBody()->write(jsonE($GLOBALS['api']));

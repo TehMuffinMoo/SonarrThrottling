@@ -7,7 +7,7 @@ $('body').arrive('#activeInfo', {onceOnly: true}, function() {
 function sonarrThrottlingPluginLaunch(){
 	organizrAPI2('GET','api/v2/plugins/sonarrthrottling/launch').success(function(data) {
 		try {
-			var menuList = `<li><a href="javascript:void(0)" onclick="togglesonarrThrottlingPlugin();"><i class="fa fa-tv fa-fw"></i> <span lang="en">Throttled TV Shows</span></a></li>`;
+			var menuList = `<li><a href="javascript:void(0)" onclick="toggleSonarrThrottlingPlugin();"><i class="fa fa-tv fa-fw"></i> <span lang="en">Throttled TV Shows</span></a></li>`;
 			$('.append-menu').after(menuList);
 		}catch(e) {
 			organizrCatchError(e,data);
@@ -16,7 +16,7 @@ function sonarrThrottlingPluginLaunch(){
 		OrganizrApiError(xhr);
 	});
 }
-function togglesonarrThrottlingPlugin(){
+function toggleSonarrThrottlingPlugin(){
 	let div = `
 		<div class="panel bg-org panel-info" id="sonarrThrottling-area">
 			<div class="panel-heading">
