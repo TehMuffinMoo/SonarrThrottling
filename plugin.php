@@ -319,7 +319,7 @@ class sonarrThrottlingPlugin extends Organizr
 					}
 					foreach ($SonarrSeriesItem->images as $ImgObj) {
 						if ($ImgObj->coverType == "poster") {
-						$SonarrSeriesObjImage = $ImgObj->url;
+						$SonarrSeriesObjImage = $ImgObj->remoteUrl;
 						}
 					}
 					$apiData[] = array (
