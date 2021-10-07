@@ -547,17 +547,17 @@ class sonarrThrottlingPlugin extends Organizr
 			if ($SonarrSeriesPUT) {
 				switch ($Search) {
 					case "searchAll":
-						$Response = $SonarrSeriesObj->title.' has been added as a normal TV Show. Sent request to search for all episodes.';
+						$Response = $SonarrSeriesObj->title.' has been added as a normal TV Show. Sent search request for all episodes.';
 						$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook: '.$Response.'', 'SYSTEM');
 						$this->setResponse(200, $Response);
 					case "searchX":
-						$Response = $SonarrSeriesObj->title.' has been added as a Throttled TV Show. Sent request to search for the first '.$EpisodeSearchCount.' episodes.';
+						$Response = $SonarrSeriesObj->title.' has been added as a Throttled TV Show. Sent search request for the first '.$EpisodeSearchCount.' episodes.';
 						$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook: '.$Response.'', 'SYSTEM');
 						$this->setResponse(200, $Response);
 				}
 			} else {
-				$this->setResponse(409, 'Unable to send update TV Show.');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Overseerr Webhook Error: Unable to send update TV Show.', 'SYSTEM');
+				$this->setResponse(409, 'Unable to update TV Show.');
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Overseerr Webhook Error: Unable to update TV Show.', 'SYSTEM');
 			}
 				
 		} else {
