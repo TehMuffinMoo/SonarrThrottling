@@ -42,7 +42,7 @@ class sonarrThrottlingPlugin extends Organizr
 				<br/>
 				<h3>Tautulli Webhook</h3>
 				<p>Configure this Webhook in Tautulli. Using the <code>Playback Start</code> or <code>Watched</code> triggers will provide the best experience.</p>
-				<code class="elip hidden-xs">' . $this->getServerPath() . 'api/v2/sonarrthrottling/webhooks/tautulli/</code>
+				<code class="elip hidden-xs">' . $this->getServerPath() . 'api/v2/plugins/sonarrthrottling/webhooks/tautulli</code>
 				<br/>
 				<p>Tautulli JSON Data - This can be customised as long as <b>tvdbId</b> and <b>media_type</b> are present.</p>
 				<pre>
@@ -61,7 +61,7 @@ class sonarrThrottlingPlugin extends Organizr
 				<br/>
 				<h3>Overseerr Webhook</h3>
 				<p>Configure this Webhook in Overseerr</p>
-				<code class="elip hidden-xs">' . $this->getServerPath() . 'api/v2/sonarrthrottling/webhooks/overseerr/</code>
+				<code class="elip hidden-xs">' . $this->getServerPath() . 'api/v2/plugins/sonarrthrottling/webhooks/overseerr</code>
 				<br/>
 				<p>Overseerr JSON Payload (Default Webhook) - This can be customised as long as <b>media->tvdbId</b> and <b>media->media_type</b> are present</p>
 				<pre>
