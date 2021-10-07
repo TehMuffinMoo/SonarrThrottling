@@ -539,10 +539,26 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrSearchPostData = json_encode($SonarrSearchPostData);
 				$this->sonarrThrottlingPluginRunSonarrCommand($SonarrHost,$SonarrAPIKey,$SonarrSearchPostData); // Send Scan Command to Sonarr
 			}
-			
+
 			## Submit data back to Sonarr
 			$SonarrSeriesJSON = json_encode($SonarrSeriesObj); // Convert back to JSON
 			$SonarrSeriesPUT = $this->sonarrThrottlingPluginSetSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID,$SonarrSeriesJSON); // POST Data to Sonarr
+
+			if ($SonarrSeriesPUT) {
+				switch ($Search) {
+					case "searchAll":
+						$Response = $SonarrSeriesObj->title.' has been added as a normal TV Show. Sent request to search for all episodes.';
+						$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook: '.$Response.'', 'SYSTEM');
+						$this->setResponse(200, $Response);
+					case "searchX":
+						$Response = $SonarrSeriesObj->title.' has been added as a Throttled TV Show. Sent request to search for the first '.$EpisodeSearchCount.' episodes.';
+						$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook: '.$Response.'', 'SYSTEM');
+						$this->setResponse(200, $Response);
+				}
+			} else {
+				$this->setResponse(409, 'Unable to send update TV Show.');
+				$this->writeLog('error', 'Sonarr Throttling Plugin - Overseerr Webhook Error: Unable to send update TV Show.', 'SYSTEM');
+			}
 				
 		} else {
 			$this->setResponse(200, 'Not a TV Show Request.');
