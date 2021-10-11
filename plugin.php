@@ -1,6 +1,6 @@
 <?php
 // PLUGIN INFORMATION
-$GLOBALS['plugins'][]['sonarrThrottling'] = array( // Plugin Name
+$GLOBALS['plugins']['sonarrThrottling'] = array( // Plugin Name
 	'name' => 'Sonarr Throttling', // Plugin Name
 	'author' => 'TehMuffinMoo', // Who wrote the plugin
 	'category' => 'Library Management', // One to Two Word Description
@@ -8,7 +8,7 @@ $GLOBALS['plugins'][]['sonarrThrottling'] = array( // Plugin Name
 	'license' => 'personal', // License Type use , for multiple
 	'idPrefix' => 'SONARRTHROTTLING', // html element id prefix (All Uppercase)
 	'configPrefix' => 'SONARRTHROTTLING', // config file prefix for array items without the hypen (All Uppercase)
-	'version' => '1.0.0', // SemVer of plugin
+	'version' => '1.0.1', // SemVer of plugin
 	'image' => 'api/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'bind' => true, // use default bind to make settings page - true or false
