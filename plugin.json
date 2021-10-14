@@ -12,6 +12,7 @@
     "release_date": "2021-10-03",
     "last_updated": "2021-10-11",
     "github_folder": "root",
+    "project_folder": "sonarr-throttling",
     "license": "personal,business",
     "images": {
       "Plex Admin": "https://i.imgur.com/ebAwRp1.png",
