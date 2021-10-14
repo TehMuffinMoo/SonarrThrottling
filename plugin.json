@@ -1,10 +1,10 @@
 {
   "Sonarr Throttling": {
-    "repo": "https://github.com/causefx/SonarrThrottling",
+    "repo": "https://github.com/TehMuffinMoo/SonarrThrottling",
     "author": "TehMuffinMoo",
     "category": "Library Management",
     "description": "This plugin allows you to specify a threshold for TV Show sizes and throttles downloads accordingly. It works by configuring a webhook in Overseerr and Tautulli to manage TV Show episode downloading based on if episodes are being watched. Shows with seasons/episodes over a configured threshold will be marked as throttled and only the first X number of episodes will be downloaded. Further episodes will only be downloaded when an event is logged in Tautulli. Using this method prevents large TV Shows from being downloaded for nobody to watch them.",
-    "icon": "https://raw.githubusercontent.com/causefx/SonarrThrottling/main/logo.png",
+    "icon": "https://raw.githubusercontent.com/TehMuffinMoo/SonarrThrottling/main/logo.png",
     "contact": "https://discordapp.com/users/293873371379400705",
     "website": "https://github.com/TehMuffinMoo/SonarrThrottling",
     "version": "1.0.0",
