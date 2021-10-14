@@ -1,5 +1,6 @@
 {
   "Sonarr Throttling": {
+    "repo": "https://github.com/causefx/SonarrThrottling",
     "author": "TehMuffinMoo",
     "category": "Library Management",
     "description": "something here",
