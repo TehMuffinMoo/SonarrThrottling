@@ -137,7 +137,7 @@ class sonarrThrottlingPlugin extends Organizr
 			}
 		} catch (Requests_Exception $e) {
 			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series: ' . $e->getMessage(), 'SYSTEM');
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series' . $e->getMessage(), 409);
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series' . $e->getMessage());
 			return false;
 		}
 	}
@@ -160,7 +160,7 @@ class sonarrThrottlingPlugin extends Organizr
 			}
 		} catch (Requests_Exception $e) {
 			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to update Sonarr series: ' . $e->getMessage(), 'SYSTEM');
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to update Sonarr series' . $e->getMessage(), 409);
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to update Sonarr series' . $e->getMessage());
 			return false;
 		}
 	}
@@ -182,7 +182,7 @@ class sonarrThrottlingPlugin extends Organizr
 			}
 		} catch (Requests_Exception $e) {
 			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query episode data: ' . $e->getMessage(), 'SYSTEM');
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query episode data' . $e->getMessage(), 409);
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query episode data' . $e->getMessage());
 			return false;
 		}	
 	}
@@ -204,7 +204,7 @@ class sonarrThrottlingPlugin extends Organizr
 			}
 		} catch (Requests_Exception $e) {
 			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to run Sonarr command: ' . $e->getMessage(), 'SYSTEM');
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to run Sonarr command' . $e->getMessage(), 409);
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to run Sonarr command' . $e->getMessage());
 			return false;
 		}	
 	}
@@ -228,7 +228,7 @@ class sonarrThrottlingPlugin extends Organizr
 			}
 		} catch (Requests_Exception $e) {
 			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to lookup Sonarr series: ' . $e->getMessage(), 'SYSTEM');
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to lookup Sonarr series' . $e->getMessage(), 409);
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to lookup Sonarr series' . $e->getMessage());
 			return false;
 		}
 	}
@@ -250,7 +250,7 @@ class sonarrThrottlingPlugin extends Organizr
 			}
 		} catch (Requests_Exception $e) {
 			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr tags: ' . $e->getMessage(), 'SYSTEM');
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr tags' . $e->getMessage(), 409);
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr tags' . $e->getMessage());
 			return false;
 		}
 	}
@@ -297,7 +297,7 @@ class sonarrThrottlingPlugin extends Organizr
 			}
 		} catch (Requests_Exception $e) {
 			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag: ' . $e->getMessage(), 'SYSTEM');
-			$this->setAPIResponse('error', 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag' . $e->getMessage(), 409);
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag' . $e->getMessage());
 			return false;
 		}		
 	}
@@ -309,10 +309,15 @@ class sonarrThrottlingPlugin extends Organizr
 		$SonarrAPIKey = $SonarrInstances['token'];
 		$ThrottledTag = $this->sonarrThrottlingPluginGetThrottledTag($SonarrHost,$SonarrAPIKey);
 		$SonarrSeriesObj = $this->sonarrThrottlingPluginGetSonarrSeries($SonarrHost,$SonarrAPIKey,"");
+		if (!$ThrottledTag || !$SonarrSeriesObj) {
+			$this->writeLog('error', 'Sonarr Throttling Plugin - Error Getting Throttled TV Shows.', 'SYSTEM');
+			$this->setResponse(409, 'Sonarr Throttling Plugin - Error Getting Throttled TV Shows.');
+			return false;
+		}
 		$apiData = array();
 		foreach ($SonarrSeriesObj as $SonarrSeriesItem) {
 			if (in_array($ThrottledTag,$SonarrSeriesItem->tags)) {
-				if ($SonarrSeriesItem->episodeCount != "0") {
+				if ($SonarrSeriesItem->episodeCount > "0" && $SonarrSeriesItem->episodeFileCount > "0") {
 					$SonarrSeriesItemPerc = (100 / $SonarrSeriesItem->episodeCount) * $SonarrSeriesItem->episodeFileCount;
 					if ($SonarrSeriesItemPerc > 100) {
 						$SonarrSeriesItemPerc = "100";
@@ -334,7 +339,7 @@ class sonarrThrottlingPlugin extends Organizr
 				}
 			}
 		}
-		return $apiData;		
+		return $apiData;
 	}
 
 	public function TautulliWebhook($request)
