@@ -8,7 +8,7 @@ $GLOBALS['plugins']['sonarrThrottling'] = array( // Plugin Name
 	'license' => 'personal', // License Type use , for multiple
 	'idPrefix' => 'SONARRTHROTTLING', // html element id prefix (All Uppercase)
 	'configPrefix' => 'SONARRTHROTTLING', // config file prefix for array items without the hypen (All Uppercase)
-	'version' => '1.0.1', // SemVer of plugin
+	'version' => '1.0.2', // SemVer of plugin
 	'image' => 'api/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'bind' => true, // use default bind to make settings page - true or false
@@ -129,7 +129,7 @@ class sonarrThrottlingPlugin extends Organizr
 		try {
 			$response = Requests::get($SonarrSeriesEndpoint, $headers, []);
 			if ($response->success) {
-				$SonarrSeriesObj = json_decode($response->body);
+				$SonarrSeriesObj = json_decode($response->body,true);
 				return $SonarrSeriesObj;
 			} else {
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series');
@@ -152,7 +152,7 @@ class sonarrThrottlingPlugin extends Organizr
 		try {
 			$response = Requests::put($SonarrSeriesEndpoint, $headers, $postData, []);
 			if ($response->success) {
-				$SonarrSeriesObj = json_decode($response->body);
+				$SonarrSeriesObj = json_decode($response->body,true);
 				return $SonarrSeriesObj;
 			} else {
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to update Sonarr series');
@@ -196,7 +196,7 @@ class sonarrThrottlingPlugin extends Organizr
 		try {
 			$response = Requests::post($SonarrCommandEndpoint, $headers, $postData, []);
 			if ($response->success) {
-				$SonarrCommandObj = json_decode($response->body);
+				$SonarrCommandObj = json_decode($response->body,true);
 				return $SonarrCommandObj;
 			} else {
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to run Sonarr command');
@@ -220,7 +220,7 @@ class sonarrThrottlingPlugin extends Organizr
 		try {
 			$response = Requests::get($SonarrLookupEndpoint, $headers, []);
 			if ($response->success) {
-				$SonarrLookupObj = json_decode($response->body);
+				$SonarrLookupObj = json_decode($response->body,true);
 				return $SonarrLookupObj;
 			} else {
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to lookup Sonarr series');
@@ -242,7 +242,7 @@ class sonarrThrottlingPlugin extends Organizr
 		try {
 			$response = Requests::get($SonarrTagEndpoint, $headers, []);
 			if ($response->success) {
-				$SonarrTagObj = json_decode($response->body);
+				$SonarrTagObj = json_decode($response->body,true);
 				return $SonarrTagObj;
 			} else {
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr tags');
@@ -258,21 +258,21 @@ class sonarrThrottlingPlugin extends Organizr
 	public function sonarrThrottlingPluginGetThrottledTag($SonarrHost,$SonarrAPIKey) {
 		$ThrottledTagName = $this->config['SONARRTHROTTLING-ThrottledTagName'];
 		$SonarrTagObj = $this->sonarrThrottlingPluginGetSonarrTags($SonarrHost,$SonarrAPIKey);
-		$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
-		if (!$ThrottledTagKey) {
+		$ThrottledTagKey = (int) array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
+		$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]['id'];
+		if (!$ThrottledTag) {
 			$this->sonarrThrottlingPluginCreateThrottledTag($SonarrHost,$SonarrAPIKey);
 			$SonarrTagObj = $this->sonarrThrottlingPluginGetSonarrTags($SonarrHost,$SonarrAPIKey);
 			$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
-			if (!$ThrottledTagKey) {
+			$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]['id'];
+			if (!$ThrottledTag) {
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to find throttling Sonarr tag');
 				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to find throttling Sonarr tag', 'SYSTEM');
 				return false;
 			} else {
-				$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
 				return $ThrottledTag;
 			}
 		} else {
-			$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]->id;
 			return $ThrottledTag;
 		}
 	}
@@ -289,7 +289,7 @@ class sonarrThrottlingPlugin extends Organizr
 		try {
 			$response = Requests::post($SonarrTagEndpoint, $headers, $postData,[]);
 			if ($response->success) {
-				$SonarrTagObj = json_decode($response->body);
+				$SonarrTagObj = json_decode($response->body, true);
 				return $SonarrTagObj;
 			} else {
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag');
@@ -316,25 +316,25 @@ class sonarrThrottlingPlugin extends Organizr
 		}
 		$apiData = array();
 		foreach ($SonarrSeriesObj as $SonarrSeriesItem) {
-			if (in_array($ThrottledTag,$SonarrSeriesItem->tags)) {
-				if ($SonarrSeriesItem->episodeCount > "0" && $SonarrSeriesItem->episodeFileCount > "0") {
-					$SonarrSeriesItemPerc = (100 / $SonarrSeriesItem->episodeCount) * $SonarrSeriesItem->episodeFileCount;
+			if (in_array($ThrottledTag,$SonarrSeriesItem['tags'])) {
+				if ($SonarrSeriesItem['episodeCount'] > "0" && $SonarrSeriesItem['episodeFileCount'] > "0") {
+					$SonarrSeriesItemPerc = (100 / $SonarrSeriesItem['episodeCount']) * $SonarrSeriesItem['episodeFileCount'];
 					if ($SonarrSeriesItemPerc > 100) {
 						$SonarrSeriesItemPerc = "100";
 					}
-					foreach ($SonarrSeriesItem->images as $ImgObj) {
-						if ($ImgObj->coverType == "poster") {
-						$SonarrSeriesObjImage = $ImgObj->remoteUrl;
+					foreach ($SonarrSeriesItem['images'] as $ImgObj) {
+						if ($ImgObj['coverType'] == "poster") {
+						$SonarrSeriesObjImage = $ImgObj['remoteUrl'];
 						}
 					}
 					$apiData[] = array (
-						"Title" => $SonarrSeriesItem->title,
-						"EpisodeCount" => $SonarrSeriesItem->episodeCount,
-						"EpisodeFileCount" => $SonarrSeriesItem->episodeFileCount,
-						"TotalEpisodeCount" => $SonarrSeriesItem->totalEpisodeCount,
+						"Title" => $SonarrSeriesItem['title'],
+						"EpisodeCount" => $SonarrSeriesItem['episodeCount'],
+						"EpisodeFileCount" => $SonarrSeriesItem['episodeFileCount'],
+						"TotalEpisodeCount" => $SonarrSeriesItem['totalEpisodeCount'],
 						"Progress" => $SonarrSeriesItemPerc,
 						"ImageUrl" => $SonarrSeriesObjImage,
-						"tvdbId" => $SonarrSeriesItem->tvdbId
+						"tvdbId" => $SonarrSeriesItem['tvdbId']
 					);
 				}
 			}
@@ -389,31 +389,31 @@ class sonarrThrottlingPlugin extends Organizr
 			$SonarrLookupObj = $this->sonarrThrottlingPluginLookupSonarrSeries($SonarrHost,$SonarrAPIKey,$POST_DATA['tvdbId']);
 
 			## Check if Sonarr ID Exists
-			if (empty($SonarrLookupObj[0]->id)) {
+			if (empty($SonarrLookupObj[0]['id'])) {
 				$this->setResponse(409, 'TV Show not in Sonarr database.');
 				$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: TV Show not in Sonarr database.', 'SYSTEM');
 				return false;
 			}
 				
 			## Query Sonarr Series API
-			$SeriesID = $SonarrLookupObj[0]->id;
+			$SeriesID = $SonarrLookupObj[0]['id'];
 			$SonarrSeriesObj = $this->sonarrThrottlingPluginGetSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID);
 				
 			## Query Sonarr Episode API
-			if (in_array($ThrottledTag,$SonarrSeriesObj->tags)) {
-				$SonarrEpisodeObj = json_decode($this->sonarrThrottlingPluginGetSonarrEpisodes($SonarrHost,$SonarrAPIKey,$SeriesID));
+			if (in_array($ThrottledTag,$SonarrSeriesObj['tags'])) {
+				$SonarrEpisodeObj = json_decode($this->sonarrThrottlingPluginGetSonarrEpisodes($SonarrHost,$SonarrAPIKey,$SeriesID),true);
 				## Find next incremental episode to download
 				foreach ($SonarrEpisodeObj as $Episode) {
-					if ($Episode->hasFile == false && $Episode->seasonNumber != "0" && $Episode->monitored == true) {
+					if ($Episode['hasFile'] == false && $Episode['seasonNumber'] != "0" && $Episode['monitored'] == true) {
 						## Send Scan Request to Sonarr
-						$EpisodesToSearch[] = $Episode->id; // Episode IDs
+						$EpisodesToSearch[] = $Episode['id']; // Episode IDs
 						$SonarrSearchPostData['name'] = "EpisodeSearch";  // Sonarr command to run
 						$SonarrSearchPostData['episodeIds'] = $EpisodesToSearch; // Episode IDs Array
 						$SonarrSearchPostData = json_encode($SonarrSearchPostData); // POST Data
 						$this->sonarrThrottlingPluginRunSonarrCommand($SonarrHost,$SonarrAPIKey,$SonarrSearchPostData);
 						$MoreEpisodesAvailable = true;
 						
-						$Response = 'Search request sent for: '.$SonarrSeriesObj->title.' - S'.$Episode->seasonNumber.'E'.$Episode->episodeNumber.' - '.$Episode->title.PHP_EOL;
+						$Response = 'Search request sent for: '.$SonarrSeriesObj['title'].' - S'.$Episode['seasonNumber'].'E'.$Episode['episodeNumber'].' - '.$Episode['title'].PHP_EOL;
 						$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
 						$this->setResponse(200, $Response);
 						break;
@@ -421,7 +421,7 @@ class sonarrThrottlingPlugin extends Organizr
 				}
 				if (empty($MoreEpisodesAvailable)) {
 					## Find Throttled Tag and remove it
-					$SonarrSeriesObjtags[] = $SonarrSeriesObj->tags;
+					$SonarrSeriesObjtags[] = $SonarrSeriesObj['tags'];
 					$ArrKey = array_search($ThrottledTag, $SonarrSeriesObjtags['0']);
 					unset($SonarrSeriesObjtags['0'][$ArrKey]);
 					$SonarrSeriesObj->tags = $SonarrSeriesObjtags['0'];
@@ -490,36 +490,36 @@ class sonarrThrottlingPlugin extends Organizr
 			## Lookup Sonarr Series by tvdbId
 			$SonarrLookupObj = $this->sonarrThrottlingPluginLookupSonarrSeries($SonarrHost,$SonarrAPIKey,$POST_DATA['media']['tvdbId']);
 			## Check if Sonarr ID Exists
-			if (empty($SonarrLookupObj[0]->id)) {
+			if (empty($SonarrLookupObj[0]['id'])) {
 				$this->setResponse(409, 'TV Show not in Sonarr database');
 				$this->writeLog('error', 'Sonarr Throttling Plugin - Overseerr Webhook Error: TV Show not in Sonarr database.', 'SYSTEM');
 				return false;
 			}
 			
 			## Query Sonarr Series API
-			$SeriesID = $SonarrLookupObj[0]->id;
+			$SeriesID = $SonarrLookupObj[0]['id'];
 			$SonarrSeriesObj = $this->sonarrThrottlingPluginGetSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID);
 
 			## Check Season Count & Apply Throttling Tag if neccessary
 			$EpisodeCount = 0;
-			foreach ($SonarrSeriesObj->seasons as $season) {
-			$EpisodeCount += $season->statistics->totalEpisodeCount;
+			foreach ($SonarrSeriesObj['seasons'] as $season) {
+			$EpisodeCount += $season['statistics']['totalEpisodeCount'];
 			}
 		
-			$SeasonCount = $SonarrSeriesObj->seasonCount;
+			$SeasonCount = $SonarrSeriesObj['seasonCount'];
 			if ($SeasonCount > $SeasonCountThreshold) {
 				$SonarrSeriesObjtags[] = $ThrottledTag;
-				$SonarrSeriesObj->tags = $SonarrSeriesObjtags;
-				$SonarrSeriesObj->monitored = false;
+				$SonarrSeriesObj['tags'] = $SonarrSeriesObjtags;
+				$SonarrSeriesObj['monitored'] = false;
 				$Search = "searchX";
 			} else if ($EpisodeCount > $EpisodeCountThreshold) {
 				$SonarrSeriesObjtags[] = $ThrottledTag;
-				$SonarrSeriesObj->tags = $SonarrSeriesObjtags;
-				$SonarrSeriesObj->monitored = false;
+				$SonarrSeriesObj['tags'] = $SonarrSeriesObjtags;
+				$SonarrSeriesObj['monitored'] = false;
 				$Search = "searchX";
 			} else {
-				$SonarrSeriesObj->monitored = true;
-				$SonarrSeriesObj->addOptions->searchForMissingEpisodes = true;
+				$SonarrSeriesObj['monitored'] = true;
+				$SonarrSeriesObj['addOptions']['searchForMissingEpisodes'] = true;
 				$Search = "searchAll";
 			};
 
@@ -552,11 +552,11 @@ class sonarrThrottlingPlugin extends Organizr
 			if ($SonarrSeriesPUT) {
 				switch ($Search) {
 					case "searchAll":
-						$Response = $SonarrSeriesObj->title.' has been added as a normal TV Show. Sent search request for all episodes.';
+						$Response = $SonarrSeriesObj['title'].' has been added as a normal TV Show. Sent search request for all episodes.';
 						$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook: '.$Response.'', 'SYSTEM');
 						$this->setResponse(200, $Response);
 					case "searchX":
-						$Response = $SonarrSeriesObj->title.' has been added as a Throttled TV Show. Sent search request for the first '.$EpisodeSearchCount.' episodes.';
+						$Response = $SonarrSeriesObj['title'].' has been added as a Throttled TV Show. Sent search request for the first '.$EpisodeSearchCount.' episodes.';
 						$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook: '.$Response.'', 'SYSTEM');
 						$this->setResponse(200, $Response);
 				}
