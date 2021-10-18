@@ -8,7 +8,7 @@ $GLOBALS['plugins']['sonarrThrottling'] = array( // Plugin Name
 	'license' => 'personal', // License Type use , for multiple
 	'idPrefix' => 'SONARRTHROTTLING', // html element id prefix (All Uppercase)
 	'configPrefix' => 'SONARRTHROTTLING', // config file prefix for array items without the hypen (All Uppercase)
-	'version' => '1.0.2', // SemVer of plugin
+	'version' => '1.0.3', // SemVer of plugin
 	'image' => 'api/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'bind' => true, // use default bind to make settings page - true or false
@@ -120,6 +120,7 @@ class sonarrThrottlingPlugin extends Organizr
 	}
 
 	public function sonarrThrottlingPluginGetSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID) {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		$SonarrSeriesEndpoint = $SonarrHost.'/series/'.$SeriesID.'?apikey='.$SonarrAPIKey; // Set Sonarr Series Endpoint
 		$headers = array(
 			'Accept' => 'application/json',
@@ -132,17 +133,19 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrSeriesObj = json_decode($response->body,true);
 				return $SonarrSeriesObj;
 			} else {
+				$this->logger->warning('Unable to query Sonarr series',$response);
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series');
 				return false;
 			}
 		} catch (Requests_Exception $e) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series: ' . $e->getMessage(), 'SYSTEM');
+			$this->logger->error($e);
 			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr series' . $e->getMessage());
 			return false;
 		}
 	}
 
 	public function sonarrThrottlingPluginSetSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID,$postData) {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		$SonarrSeriesEndpoint = $SonarrHost.'/series/'.$SeriesID.'?apikey='.$SonarrAPIKey; // Set Sonarr Series Endpoint
 		$headers = array(
 			'Accept' => 'application/json',
@@ -155,17 +158,19 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrSeriesObj = json_decode($response->body,true);
 				return $SonarrSeriesObj;
 			} else {
+				$this->logger->warning('Unable to update Sonarr series',$response);
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to update Sonarr series');
 				return false;
 			}
 		} catch (Requests_Exception $e) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to update Sonarr series: ' . $e->getMessage(), 'SYSTEM');
+			$this->logger->error($e);
 			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to update Sonarr series' . $e->getMessage());
 			return false;
 		}
 	}
 
 	public function sonarrThrottlingPluginGetSonarrEpisodes($SonarrHost,$SonarrAPIKey,$SeriesID) {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		$SonarrEpisodeEndpoint = $SonarrHost.'/episode/?apikey='.$SonarrAPIKey.'&seriesId='.$SeriesID; // Set Sonarr Episode Endpoint
 		$headers = array(
 			'Accept' => 'application/json',
@@ -177,17 +182,19 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrEpisodeObj = $response->body;
 				return $SonarrEpisodeObj;
 			} else {
+				$this->logger->warning('Unable to query episode data',$response);
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query episode data');
 				return false;
 			}
 		} catch (Requests_Exception $e) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query episode data: ' . $e->getMessage(), 'SYSTEM');
+			$this->logger->error($e);
 			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query episode data' . $e->getMessage());
 			return false;
 		}	
 	}
 
 	public function sonarrThrottlingPluginRunSonarrCommand($SonarrHost,$SonarrAPIKey,$postData) {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		$SonarrCommandEndpoint = $SonarrHost."/command/?apikey=".$SonarrAPIKey; // Set Sonarr Command Endpoint
 		$headers = array(
 			'Accept' => 'application/json',
@@ -199,17 +206,19 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrCommandObj = json_decode($response->body,true);
 				return $SonarrCommandObj;
 			} else {
+				$this->logger->warning('Unable to run Sonarr command',$response);
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to run Sonarr command');
 				return false;
 			}
 		} catch (Requests_Exception $e) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to run Sonarr command: ' . $e->getMessage(), 'SYSTEM');
+			$this->logger->error($e);
 			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to run Sonarr command' . $e->getMessage());
 			return false;
 		}	
 	}
 
 	public function sonarrThrottlingPluginLookupSonarrSeries($SonarrHost,$SonarrAPIKey,$tvdbId) {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		$tvdbIdSearch = "tvdbid:".$tvdbId; // Set tvdbId search string
 		$SonarrLookupEndpoint = $SonarrHost.'/series/lookup?term='.$tvdbIdSearch.'&apikey='.$SonarrAPIKey; // Set Sonarr Lookup Endpoint
 		$headers = array(
@@ -223,17 +232,19 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrLookupObj = json_decode($response->body,true);
 				return $SonarrLookupObj;
 			} else {
+				$this->logger->warning('Unable to lookup Sonarr series',$response);
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to lookup Sonarr series');
 				return false;
 			}
 		} catch (Requests_Exception $e) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to lookup Sonarr series: ' . $e->getMessage(), 'SYSTEM');
+			$this->logger->error($e);
 			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to lookup Sonarr series' . $e->getMessage());
 			return false;
 		}
 	}
 
 	public function sonarrThrottlingPluginGetSonarrTags($SonarrHost,$SonarrAPIKey) {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey; // Set Sonarr Tag Endpoint
 		$headers = array(
 			'Accept' => 'application/json',
@@ -245,17 +256,19 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrTagObj = json_decode($response->body,true);
 				return $SonarrTagObj;
 			} else {
+				$this->logger->warning('Unable to query Sonarr tags',$response);
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr tags');
 				return false;
 			}
 		} catch (Requests_Exception $e) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to query Sonarr tags: ' . $e->getMessage(), 'SYSTEM');
+			$this->logger->error($e);
 			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to query Sonarr tags' . $e->getMessage());
 			return false;
 		}
 	}
 
 	public function sonarrThrottlingPluginGetThrottledTag($SonarrHost,$SonarrAPIKey) {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		$ThrottledTagName = $this->config['SONARRTHROTTLING-ThrottledTagName'];
 		$SonarrTagObj = $this->sonarrThrottlingPluginGetSonarrTags($SonarrHost,$SonarrAPIKey);
 		$ThrottledTagKey = (int) array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
@@ -266,8 +279,8 @@ class sonarrThrottlingPlugin extends Organizr
 			$ThrottledTagKey = array_search($ThrottledTagName, array_column($SonarrTagObj, 'label'));
 			$ThrottledTag = $SonarrTagObj[$ThrottledTagKey]['id'];
 			if (!$ThrottledTag) {
+				$this->logger->warning('Unable to find throttling Sonarr tag',$SonarrTagObj);
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to find throttling Sonarr tag');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to find throttling Sonarr tag', 'SYSTEM');
 				return false;
 			} else {
 				return $ThrottledTag;
@@ -278,6 +291,7 @@ class sonarrThrottlingPlugin extends Organizr
 	}
 
 	public function sonarrThrottlingPluginCreateThrottledTag($SonarrHost,$SonarrAPIKey) {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		$SonarrTagEndpoint = $SonarrHost.'/tag?apikey='.$SonarrAPIKey; // Set Sonarr Tag Endpoint
 		$headers = array(
 			'Accept' => 'application/json',
@@ -292,25 +306,28 @@ class sonarrThrottlingPlugin extends Organizr
 				$SonarrTagObj = json_decode($response->body, true);
 				return $SonarrTagObj;
 			} else {
+				$this->logger->warning('Unable to create Sonarr throttled tag',$response);
 				$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag');
 				return false;
 			}
 		} catch (Requests_Exception $e) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag: ' . $e->getMessage(), 'SYSTEM');
+			$this->logger->warning('Unable to create Sonarr throttled tag');
+			$this->logger->error($e);
 			$this->setResponse(409, 'Sonarr Throttling Plugin - Error: Unable to create Sonarr throttled tag' . $e->getMessage());
 			return false;
 		}		
 	}
 
 	public function sonarrThrottlingPluginGetSonarrThrottled() {
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		## Set Sonarr Details
 		$SonarrInstances = $this->chooseInstance($this->config['sonarrURL'],$this->config['sonarrToken'],$this->config['SONARRTHROTTLING-preferredSonarr']);
 		$SonarrHost = $SonarrInstances['url'].'/api';
 		$SonarrAPIKey = $SonarrInstances['token'];
 		$ThrottledTag = $this->sonarrThrottlingPluginGetThrottledTag($SonarrHost,$SonarrAPIKey);
 		$SonarrSeriesObj = $this->sonarrThrottlingPluginGetSonarrSeries($SonarrHost,$SonarrAPIKey,"");
-		if (!$ThrottledTag || !$SonarrSeriesObj) {
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error Getting Throttled TV Shows.', 'SYSTEM');
+		if (empty($ThrottledTag) || empty($SonarrSeriesObj)) {
+			$this->logger->warning('Error Getting Throttled TV Shows',$SonarrSeriesObj);
 			$this->setResponse(409, 'Sonarr Throttling Plugin - Error Getting Throttled TV Shows.');
 			return false;
 		}
@@ -344,6 +361,7 @@ class sonarrThrottlingPlugin extends Organizr
 
 	public function TautulliWebhook($request)
 	{
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		## Set Sonarr Details
 		$SonarrInstances = $this->chooseInstance($this->config['sonarrURL'],$this->config['sonarrToken'],$this->config['SONARRTHROTTLING-preferredSonarr']);
 		$SonarrHost = $SonarrInstances['url'].'/api';
@@ -355,14 +373,14 @@ class sonarrThrottlingPlugin extends Organizr
 		## Error if Throttled tag is missing in Sonarr.
 		if (empty($ThrottledTag)) {
 			$this->setResponse(409, 'Throttling tag missing from Sonarr, check logs.');
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Throttling tag missing from Sonarr, check logs.', 'SYSTEM');
+			$this->logger->warning('Throttling tag missing from Sonarr, check logs.',$ThrottledTag);
 			return false;
 		}
 			
 		## Check for valid data and API Key
 		if ($request == null) {
 			$this->setResponse(409, 'PHP Input Empty');
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Error: PHP Input Empty', 'SYSTEM');
+			$this->logger->warning('PHP Input Empty',$request);
 			return false;
 		}
 		
@@ -372,7 +390,7 @@ class sonarrThrottlingPlugin extends Organizr
 		## Check for test notification
 		if ($POST_DATA['test_notification']) {
 			$this->setResponse(200, 'TEST SUCCESSFUL');
-			$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook Test Received.', 'SYSTEM');
+			$this->logger->info('Tautulli Webhook Test Received.',$POST_DATA);
 			return true;
 		}
 
@@ -381,7 +399,7 @@ class sonarrThrottlingPlugin extends Organizr
 			## Check tvdbId exists
 			if (empty($POST_DATA['tvdbId'])) {
 				$this->setResponse(409, 'Empty tvdbId');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: Empty tvdbId', 'SYSTEM');
+				$this->logger->warning('Tautulli Webhook Error: Empty tvdbId',$POST_DATA);
 				return false;
 			}
 
@@ -391,7 +409,7 @@ class sonarrThrottlingPlugin extends Organizr
 			## Check if Sonarr ID Exists
 			if (empty($SonarrLookupObj[0]['id'])) {
 				$this->setResponse(409, 'TV Show not in Sonarr database.');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Tautulli Webhook Error: TV Show not in Sonarr database.', 'SYSTEM');
+				$this->logger->debug('Tautulli Webhook Error: TV Show not in Sonarr database.',$POST_DATA);
 				return false;
 			}
 				
@@ -414,7 +432,7 @@ class sonarrThrottlingPlugin extends Organizr
 						$MoreEpisodesAvailable = true;
 						
 						$Response = 'Search request sent for: '.$SonarrSeriesObj['title'].' - S'.$Episode['seasonNumber'].'E'.$Episode['episodeNumber'].' - '.$Episode['title'].PHP_EOL;
-						$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
+						$this->logger->info('Tautulli Webhook: Search Request Sent',$Response);
 						$this->setResponse(200, $Response);
 						break;
 					}
@@ -432,7 +450,7 @@ class sonarrThrottlingPlugin extends Organizr
 					$SonarrSeriesPUT = $this->sonarrThrottlingPluginSetSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID,$SonarrSeriesJSON); // POST Data to Sonarr
 					$Response = 'All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj->title.' and marked as monitored.';
 					$this->setResponse(200, $Response);
-					$this->writeLog('info', 'Sonarr Throttling Plugin - Tautulli Webhook: '.$Response.'', 'SYSTEM');
+					$this->logger->info('Tautulli Webhook: TV Show Full',$Response);
 					return true;
 				}
 			} else {
@@ -448,11 +466,11 @@ class sonarrThrottlingPlugin extends Organizr
 
 	public function OverseerrWebhook($request)
 	{
-
+		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		## Check for data
 		if ($request == null) {
 			$this->setResponse(409, 'PHP Input Empty');
-			$this->writeLog('error', 'Sonarr Throttling Plugin - Overseerr Webhook Error: PHP Input Empty', 'SYSTEM');
+			$this->logger->warning('Overseerr Webhook Error: PHP Input Empty',$request);
 			return false;
 		}
 		
@@ -461,7 +479,7 @@ class sonarrThrottlingPlugin extends Organizr
 
 		if ($POST_DATA['notification_type'] == "TEST_NOTIFICATION") {
 			$this->setResponse(200, 'TEST SUCCESSFUL');
-			$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook Test Received.', 'SYSTEM');
+			$this->logger->notice('Overseerr Webhook Test Received.',$POST_DATA);
 			return true;
 		}
 
@@ -484,7 +502,7 @@ class sonarrThrottlingPlugin extends Organizr
 			## Error if Throttled tag is missing in Sonarr.
 			if (empty($ThrottledTag)) {
 				$this->setResponse(409, 'Throttling tag missing from Sonarr, check logs.');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Error: Throttling tag missing from Sonarr, check logs.', 'SYSTEM');
+				$this->logger->warning('Throttling tag missing from Sonarr, check logs.',$ThrottledTag);
 				return false;
 			}
 			## Lookup Sonarr Series by tvdbId
@@ -492,7 +510,7 @@ class sonarrThrottlingPlugin extends Organizr
 			## Check if Sonarr ID Exists
 			if (empty($SonarrLookupObj[0]['id'])) {
 				$this->setResponse(409, 'TV Show not in Sonarr database');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Overseerr Webhook Error: TV Show not in Sonarr database.', 'SYSTEM');
+				$this->logger->debug('Overseerr Webhook Error: TV Show not in Sonarr database.',$SonarrLookupObj);
 				return false;
 			}
 			
@@ -553,16 +571,16 @@ class sonarrThrottlingPlugin extends Organizr
 				switch ($Search) {
 					case "searchAll":
 						$Response = $SonarrSeriesObj['title'].' has been added as a normal TV Show. Sent search request for all episodes.';
-						$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook: '.$Response.'', 'SYSTEM');
+						$this->logger->info('Overseerr Webhook: Normal TV Show Added.',$Response);
 						$this->setResponse(200, $Response);
 					case "searchX":
 						$Response = $SonarrSeriesObj['title'].' has been added as a Throttled TV Show. Sent search request for the first '.$EpisodeSearchCount.' episodes.';
-						$this->writeLog('info', 'Sonarr Throttling Plugin - Overseerr Webhook: '.$Response.'', 'SYSTEM');
+						$this->logger->info('Overseerr Webhook: Throttled TV Show Added.',$Response);
 						$this->setResponse(200, $Response);
 				}
 			} else {
+				$this->logger->warning('Overseerr Webhook Error: Unable to update TV Show.',$SonarrSeriesPUT);
 				$this->setResponse(409, 'Unable to update TV Show.');
-				$this->writeLog('error', 'Sonarr Throttling Plugin - Overseerr Webhook Error: Unable to update TV Show.', 'SYSTEM');
 			}
 				
 		} else {
