@@ -390,7 +390,7 @@ class sonarrThrottlingPlugin extends Organizr
 		## Check for test notification
 		if ($POST_DATA['test_notification']) {
 			$this->setResponse(200, 'TEST SUCCESSFUL');
-			$this->logger->info('Tautulli Webhook Test Received.',$POST_DATA);
+			$this->logger->notice('Tautulli Webhook Test Received.',$POST_DATA);
 			return true;
 		}
 
