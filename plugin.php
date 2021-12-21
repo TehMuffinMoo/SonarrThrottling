@@ -8,7 +8,7 @@ $GLOBALS['plugins']['sonarrThrottling'] = array( // Plugin Name
 	'license' => 'personal', // License Type use , for multiple
 	'idPrefix' => 'SONARRTHROTTLING', // html element id prefix (All Uppercase)
 	'configPrefix' => 'SONARRTHROTTLING', // config file prefix for array items without the hypen (All Uppercase)
-	'version' => '1.0.3', // SemVer of plugin
+	'version' => '1.0.4', // SemVer of plugin
 	'image' => 'api/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'bind' => true, // use default bind to make settings page - true or false
@@ -440,15 +440,15 @@ class sonarrThrottlingPlugin extends Organizr
 				if (empty($MoreEpisodesAvailable)) {
 					## Find Throttled Tag and remove it
 					$SonarrSeriesObjtags[] = $SonarrSeriesObj['tags'];
-					$ArrKey = array_search($ThrottledTag, $SonarrSeriesObjtags['0']);
+					$ArrKey = array_search($ThrottledTag, $SonarrSeriesObjtags[0]);
 					unset($SonarrSeriesObjtags['0'][$ArrKey]);
-					$SonarrSeriesObj->tags = $SonarrSeriesObjtags['0'];
+					$SonarrSeriesObj['tags'] = $SonarrSeriesObjtags['0'];
 					## Mark TV Show as Monitored
-					$SonarrSeriesObj->monitored = true;
+					$SonarrSeriesObj['monitored'] = true;
 					## Submit data back to Sonarr
 					$SonarrSeriesJSON = json_encode($SonarrSeriesObj); // Convert back to JSON
 					$SonarrSeriesPUT = $this->sonarrThrottlingPluginSetSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID,$SonarrSeriesJSON); // POST Data to Sonarr
-					$Response = 'All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj->title.' and marked as monitored.';
+					$Response = 'All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj['title'].' and marked as monitored.';
 					$this->setResponse(200, $Response);
 					$this->logger->info('Tautulli Webhook: TV Show Full',$Response);
 					return true;
