@@ -8,7 +8,7 @@ $GLOBALS['plugins']['sonarrThrottling'] = array( // Plugin Name
 	'license' => 'personal', // License Type use , for multiple
 	'idPrefix' => 'SONARRTHROTTLING', // html element id prefix (All Uppercase)
 	'configPrefix' => 'SONARRTHROTTLING', // config file prefix for array items without the hypen (All Uppercase)
-	'version' => '1.0.4', // SemVer of plugin
+	'version' => '1.0.5', // SemVer of plugin
 	'image' => 'api/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'bind' => true, // use default bind to make settings page - true or false
@@ -128,7 +128,8 @@ class sonarrThrottlingPlugin extends Organizr
 		);
 		## Query Sonarr Series API
 		try {
-			$response = Requests::get($SonarrSeriesEndpoint, $headers, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::get($SonarrSeriesEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrSeriesObj = json_decode($response->body,true);
 				return $SonarrSeriesObj;
@@ -153,7 +154,8 @@ class sonarrThrottlingPlugin extends Organizr
 		);
 		## Query Sonarr Series API
 		try {
-			$response = Requests::put($SonarrSeriesEndpoint, $headers, $postData, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::put($SonarrSeriesEndpoint, $headers, $postData, $options);
 			if ($response->success) {
 				$SonarrSeriesObj = json_decode($response->body,true);
 				return $SonarrSeriesObj;
@@ -177,7 +179,8 @@ class sonarrThrottlingPlugin extends Organizr
 			'Content-type: application/json',
 		);
 		try {
-			$response = Requests::get($SonarrEpisodeEndpoint, $headers, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::get($SonarrEpisodeEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrEpisodeObj = $response->body;
 				return $SonarrEpisodeObj;
@@ -201,7 +204,8 @@ class sonarrThrottlingPlugin extends Organizr
 			'Content-type: application/json',
 		);
 		try {
-			$response = Requests::post($SonarrCommandEndpoint, $headers, $postData, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::post($SonarrCommandEndpoint, $headers, $postData, $options);
 			if ($response->success) {
 				$SonarrCommandObj = json_decode($response->body,true);
 				return $SonarrCommandObj;
@@ -227,7 +231,8 @@ class sonarrThrottlingPlugin extends Organizr
 		);
 		## Query Sonarr Lookup API
 		try {
-			$response = Requests::get($SonarrLookupEndpoint, $headers, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::get($SonarrLookupEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrLookupObj = json_decode($response->body,true);
 				return $SonarrLookupObj;
@@ -251,7 +256,8 @@ class sonarrThrottlingPlugin extends Organizr
 			'Content-type: application/json',
 		);
 		try {
-			$response = Requests::get($SonarrTagEndpoint, $headers, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::get($SonarrTagEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrTagObj = json_decode($response->body,true);
 				return $SonarrTagObj;
@@ -301,7 +307,8 @@ class sonarrThrottlingPlugin extends Organizr
 			"label" => $this->config['SONARRTHROTTLING-ThrottledTagName'],
 		));
 		try {
-			$response = Requests::post($SonarrTagEndpoint, $headers, $postData,[]);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::post($SonarrTagEndpoint, $headers, $postData,$options);
 			if ($response->success) {
 				$SonarrTagObj = json_decode($response->body, true);
 				return $SonarrTagObj;
