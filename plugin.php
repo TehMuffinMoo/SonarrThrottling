@@ -8,7 +8,7 @@ $GLOBALS['plugins']['sonarrThrottling'] = array( // Plugin Name
 	'license' => 'personal', // License Type use , for multiple
 	'idPrefix' => 'SONARRTHROTTLING', // html element id prefix (All Uppercase)
 	'configPrefix' => 'SONARRTHROTTLING', // config file prefix for array items without the hypen (All Uppercase)
-	'version' => '1.0.6', // SemVer of plugin
+	'version' => '1.0.7', // SemVer of plugin
 	'image' => 'data/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'bind' => true, // use default bind to make settings page - true or false
@@ -256,7 +256,7 @@ class sonarrThrottlingPlugin extends Organizr
 			'Content-type: application/json',
 		);
 		try {
-			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$options = $this->requestOptions($SonarrTagEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
 			$response = Requests::get($SonarrTagEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrTagObj = json_decode($response->body,true);
