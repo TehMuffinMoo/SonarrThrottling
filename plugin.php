@@ -8,7 +8,7 @@ $GLOBALS['plugins']['sonarrThrottling'] = array( // Plugin Name
 	'license' => 'personal', // License Type use , for multiple
 	'idPrefix' => 'SONARRTHROTTLING', // html element id prefix (All Uppercase)
 	'configPrefix' => 'SONARRTHROTTLING', // config file prefix for array items without the hypen (All Uppercase)
-	'version' => '1.0.5', // SemVer of plugin
+	'version' => '1.0.6', // SemVer of plugin
 	'image' => 'data/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'bind' => true, // use default bind to make settings page - true or false
@@ -560,7 +560,7 @@ class sonarrThrottlingPlugin extends Organizr
 			} else if ($Search == "searchX") {
 				$Episodes = json_decode($this->sonarrThrottlingPluginGetSonarrEpisodes($SonarrHost,$SonarrAPIKey,$SeriesID),true); // Get list of episodes
 				foreach ($Episodes as $Key => $Episode) {
-					if ($Episode['seasonNumber'] != "0" && $Episode['hasFile'] != true) {
+					if ($Episode['seasonNumber'] != "0" && $Episode['hasFile'] != true && $Episode['monitored'] == true) {
 					$EpisodesToSearch[] = $Episode['id'];
 					}
 				}
