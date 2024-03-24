@@ -8,8 +8,8 @@ $GLOBALS['plugins']['sonarrThrottling'] = array( // Plugin Name
 	'license' => 'personal', // License Type use , for multiple
 	'idPrefix' => 'SONARRTHROTTLING', // html element id prefix (All Uppercase)
 	'configPrefix' => 'SONARRTHROTTLING', // config file prefix for array items without the hypen (All Uppercase)
-	'version' => '1.0.3', // SemVer of plugin
-	'image' => 'api/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
+	'version' => '1.0.7', // SemVer of plugin
+	'image' => 'data/plugins/sonarrThrottling/logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'bind' => true, // use default bind to make settings page - true or false
 	'api' => 'api/v2/plugins/sonarrthrottling/settings', // api route for settings page (All Lowercase)
@@ -32,6 +32,21 @@ class sonarrThrottlingPlugin extends Organizr
 		} else {
 			$list = [['name' => 'Refresh page to update List', 'value' => '', 'disabled' => true]];
 		}
+
+		$sonarrVersions = array(
+			array(
+			        "name" => 'v2',
+                                "value" => 'v2'
+			),
+                        array(
+                                "name" => 'v3',
+                                "value" => 'v3'
+			),
+                        array(
+                                "name" => 'v4',
+                                "value" => 'v4'
+			)
+		);
 
 		return array(
 			'About' => array (
@@ -103,6 +118,7 @@ class sonarrThrottlingPlugin extends Organizr
 				$this->settingsOption('select', 'SONARRTHROTTLING-preferredSonarr', ['label' => 'Preferred Server', 'options' => $list]),
 				$this->settingsOption('disable-cert-check', 'sonarrDisableCertCheck'),
 				$this->settingsOption('use-custom-certificate', 'sonarrUseCustomCertificate'),
+				$this->settingsOption('select', 'SONARRTHROTTLING-sonarrApiVersion', ['label' => 'API Version', 'options' => $sonarrVersions]),
 				$this->settingsOption('test', 'sonarr'),
 			),
 		);
@@ -128,7 +144,8 @@ class sonarrThrottlingPlugin extends Organizr
 		);
 		## Query Sonarr Series API
 		try {
-			$response = Requests::get($SonarrSeriesEndpoint, $headers, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::get($SonarrSeriesEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrSeriesObj = json_decode($response->body,true);
 				return $SonarrSeriesObj;
@@ -153,7 +170,8 @@ class sonarrThrottlingPlugin extends Organizr
 		);
 		## Query Sonarr Series API
 		try {
-			$response = Requests::put($SonarrSeriesEndpoint, $headers, $postData, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::put($SonarrSeriesEndpoint, $headers, $postData, $options);
 			if ($response->success) {
 				$SonarrSeriesObj = json_decode($response->body,true);
 				return $SonarrSeriesObj;
@@ -177,7 +195,8 @@ class sonarrThrottlingPlugin extends Organizr
 			'Content-type: application/json',
 		);
 		try {
-			$response = Requests::get($SonarrEpisodeEndpoint, $headers, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::get($SonarrEpisodeEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrEpisodeObj = $response->body;
 				return $SonarrEpisodeObj;
@@ -201,7 +220,8 @@ class sonarrThrottlingPlugin extends Organizr
 			'Content-type: application/json',
 		);
 		try {
-			$response = Requests::post($SonarrCommandEndpoint, $headers, $postData, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::post($SonarrCommandEndpoint, $headers, $postData, $options);
 			if ($response->success) {
 				$SonarrCommandObj = json_decode($response->body,true);
 				return $SonarrCommandObj;
@@ -227,7 +247,8 @@ class sonarrThrottlingPlugin extends Organizr
 		);
 		## Query Sonarr Lookup API
 		try {
-			$response = Requests::get($SonarrLookupEndpoint, $headers, []);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::get($SonarrLookupEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrLookupObj = json_decode($response->body,true);
 				return $SonarrLookupObj;
@@ -251,7 +272,8 @@ class sonarrThrottlingPlugin extends Organizr
 			'Content-type: application/json',
 		);
 		try {
-			$response = Requests::get($SonarrTagEndpoint, $headers, []);
+			$options = $this->requestOptions($SonarrTagEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::get($SonarrTagEndpoint, $headers, $options);
 			if ($response->success) {
 				$SonarrTagObj = json_decode($response->body,true);
 				return $SonarrTagObj;
@@ -301,7 +323,8 @@ class sonarrThrottlingPlugin extends Organizr
 			"label" => $this->config['SONARRTHROTTLING-ThrottledTagName'],
 		));
 		try {
-			$response = Requests::post($SonarrTagEndpoint, $headers, $postData,[]);
+			$options = $this->requestOptions($SonarrSeriesEndpoint, null, $this->config['sonarrDisableCertCheck'], $this->config['sonarrUseCustomCertificate']);
+			$response = Requests::post($SonarrTagEndpoint, $headers, $postData,$options);
 			if ($response->success) {
 				$SonarrTagObj = json_decode($response->body, true);
 				return $SonarrTagObj;
@@ -322,7 +345,7 @@ class sonarrThrottlingPlugin extends Organizr
 		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		## Set Sonarr Details
 		$SonarrInstances = $this->chooseInstance($this->config['sonarrURL'],$this->config['sonarrToken'],$this->config['SONARRTHROTTLING-preferredSonarr']);
-		$SonarrHost = $SonarrInstances['url'].'/api';
+		$SonarrHost = $SonarrInstances['url'].'/api/'.$this->config['SONARRTHROTTLING-sonarrApiVersion'];
 		$SonarrAPIKey = $SonarrInstances['token'];
 		$ThrottledTag = $this->sonarrThrottlingPluginGetThrottledTag($SonarrHost,$SonarrAPIKey);
 		$SonarrSeriesObj = $this->sonarrThrottlingPluginGetSonarrSeries($SonarrHost,$SonarrAPIKey,"");
@@ -334,8 +357,8 @@ class sonarrThrottlingPlugin extends Organizr
 		$apiData = array();
 		foreach ($SonarrSeriesObj as $SonarrSeriesItem) {
 			if (in_array($ThrottledTag,$SonarrSeriesItem['tags'])) {
-				if ($SonarrSeriesItem['episodeCount'] > "0" && $SonarrSeriesItem['episodeFileCount'] > "0") {
-					$SonarrSeriesItemPerc = (100 / $SonarrSeriesItem['episodeCount']) * $SonarrSeriesItem['episodeFileCount'];
+				if ($SonarrSeriesItem['statistics']['episodeCount'] > 0 && $SonarrSeriesItem['statistics']['episodeFileCount'] > 0) {
+					$SonarrSeriesItemPerc = (100 / $SonarrSeriesItem['statistics']['episodeCount']) * $SonarrSeriesItem['statistics']['episodeFileCount'];
 					if ($SonarrSeriesItemPerc > 100) {
 						$SonarrSeriesItemPerc = "100";
 					}
@@ -346,9 +369,9 @@ class sonarrThrottlingPlugin extends Organizr
 					}
 					$apiData[] = array (
 						"Title" => $SonarrSeriesItem['title'],
-						"EpisodeCount" => $SonarrSeriesItem['episodeCount'],
-						"EpisodeFileCount" => $SonarrSeriesItem['episodeFileCount'],
-						"TotalEpisodeCount" => $SonarrSeriesItem['totalEpisodeCount'],
+						"EpisodeCount" => $SonarrSeriesItem['statistics']['episodeCount'],
+						"EpisodeFileCount" => $SonarrSeriesItem['statistics']['episodeFileCount'],
+						"TotalEpisodeCount" => $SonarrSeriesItem['statistics']['totalEpisodeCount'],
 						"Progress" => $SonarrSeriesItemPerc,
 						"ImageUrl" => $SonarrSeriesObjImage,
 						"tvdbId" => $SonarrSeriesItem['tvdbId']
@@ -364,7 +387,7 @@ class sonarrThrottlingPlugin extends Organizr
 		$this->setLoggerChannel('Sonarr Throttling Plugin');
 		## Set Sonarr Details
 		$SonarrInstances = $this->chooseInstance($this->config['sonarrURL'],$this->config['sonarrToken'],$this->config['SONARRTHROTTLING-preferredSonarr']);
-		$SonarrHost = $SonarrInstances['url'].'/api';
+		$SonarrHost = $SonarrInstances['url'].'/api/'.$this->config['SONARRTHROTTLING-sonarrApiVersion'];
 		$SonarrAPIKey = $SonarrInstances['token'];
 
 		## Get Throttled Tag
@@ -390,7 +413,7 @@ class sonarrThrottlingPlugin extends Organizr
 		## Check for test notification
 		if ($POST_DATA['test_notification']) {
 			$this->setResponse(200, 'TEST SUCCESSFUL');
-			$this->logger->info('Tautulli Webhook Test Received.',$POST_DATA);
+			$this->logger->notice('Tautulli Webhook Test Received.',$POST_DATA);
 			return true;
 		}
 
@@ -440,15 +463,15 @@ class sonarrThrottlingPlugin extends Organizr
 				if (empty($MoreEpisodesAvailable)) {
 					## Find Throttled Tag and remove it
 					$SonarrSeriesObjtags[] = $SonarrSeriesObj['tags'];
-					$ArrKey = array_search($ThrottledTag, $SonarrSeriesObjtags['0']);
+					$ArrKey = array_search($ThrottledTag, $SonarrSeriesObjtags[0]);
 					unset($SonarrSeriesObjtags['0'][$ArrKey]);
-					$SonarrSeriesObj->tags = $SonarrSeriesObjtags['0'];
+					$SonarrSeriesObj['tags'] = $SonarrSeriesObjtags['0'];
 					## Mark TV Show as Monitored
-					$SonarrSeriesObj->monitored = true;
+					$SonarrSeriesObj['monitored'] = true;
 					## Submit data back to Sonarr
 					$SonarrSeriesJSON = json_encode($SonarrSeriesObj); // Convert back to JSON
 					$SonarrSeriesPUT = $this->sonarrThrottlingPluginSetSonarrSeries($SonarrHost,$SonarrAPIKey,$SeriesID,$SonarrSeriesJSON); // POST Data to Sonarr
-					$Response = 'All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj->title.' and marked as monitored.';
+					$Response = 'All aired episodes are available. Removed throttling from: '.$SonarrSeriesObj['title'].' and marked as monitored.';
 					$this->setResponse(200, $Response);
 					$this->logger->info('Tautulli Webhook: TV Show Full',$Response);
 					return true;
@@ -490,7 +513,7 @@ class sonarrThrottlingPlugin extends Organizr
 			sleep(10);
 			## Set Sonarr Details
 			$SonarrInstances = $this->chooseInstance($this->config['sonarrURL'],$this->config['sonarrToken'],$this->config['SONARRTHROTTLING-preferredSonarr']);
-			$SonarrHost = $SonarrInstances['url'].'/api';
+			$SonarrHost = $SonarrInstances['url'].'/api/'.$this->config['SONARRTHROTTLING-sonarrApiVersion'];
 			$SonarrAPIKey = $SonarrInstances['token'];
 			## Set Parameters
 			$SeasonCountThreshold = $this->config['SONARRTHROTTLING-SeasonCountThreshold'];
@@ -553,7 +576,7 @@ class sonarrThrottlingPlugin extends Organizr
 			} else if ($Search == "searchX") {
 				$Episodes = json_decode($this->sonarrThrottlingPluginGetSonarrEpisodes($SonarrHost,$SonarrAPIKey,$SeriesID),true); // Get list of episodes
 				foreach ($Episodes as $Key => $Episode) {
-					if ($Episode['seasonNumber'] != "0" && $Episode['hasFile'] != true) {
+					if ($Episode['seasonNumber'] != "0" && $Episode['hasFile'] != true && $Episode['monitored'] == true) {
 					$EpisodesToSearch[] = $Episode['id'];
 					}
 				}
